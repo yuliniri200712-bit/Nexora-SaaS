@@ -40,12 +40,14 @@ Son valores por defecto seguros; ninguna está cerrada comercialmente.
 - MySQL protege `OrderEvent` con triggers y valida importes con CHECK. El saldo reservado se contrasta con las reservas activas en una prueba de invariantes.
 - `MovementType` añade RESERVE, RELEASE y SALE. Las reservas tienen `quantity` 0 y `reservedDelta` distinto de 0, por lo que no alteran entradas y salidas.
 
+- Las contraseñas usan Argon2id integrado en Node (`crypto.argon2`, disponible en la versión exigida por el proyecto), con los mismos parámetros y formato PHC. Sustituye al paquete `argon2`, cuyo binario sin firmar bloqueaba el Control inteligente de aplicaciones de Windows e impedía arrancar la API. Una prueba verifica un hash real generado por el paquete anterior.
+
 ## Verificación
 
 | Comprobación | Resultado |
 | --- | --- |
 | TypeScript, ESLint, Prettier | Aprobados |
-| Unitarias | 14 aprobadas |
+| Unitarias | 17 aprobadas |
 | Integración MySQL real | 43 aprobadas (21 anteriores y 22 de Fase 2), en ejecuciones repetidas |
 | E2E Chrome | 2 recorridos aprobados, con puertos alternativos |
 | Prueba manual | El usuario informó el 2026-11-09 que el flujo funciona en Chrome y en su servidor local |

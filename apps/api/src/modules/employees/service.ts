@@ -1,4 +1,3 @@
-import argon2 from 'argon2';
 import type { Role } from '@nexora/shared';
 import type { TenantContext } from '../../core/context.js';
 import { db, transaction } from '../../infrastructure/database.js';
@@ -7,7 +6,7 @@ import { hash, token } from '../../core/crypto.js';
 import { assert } from '../../core/errors.js';
 import { config } from '../../core/config.js';
 import { sendLink } from '../../infrastructure/mail.js';
-import { passwordHash } from '../auth/service.js';
+import { hashPassword as passwordHash, verifyPassword } from '../../core/password.js';
 export async function list(context: TenantContext) {
   return {
     employees: await db.membership.findMany({
@@ -110,7 +109,7 @@ export async function accept(input: { token: string; name: string; password: str
     let user = await tx.user.findUnique({ where: { email: entry.email } });
     if (user) {
       assert(
-        user.active && (await argon2.verify(user.passwordHash, input.password)),
+        user.active && (await verifyPassword(user.passwordHash, input.password)),
         400,
         'EXISTING_ACCOUNT',
         'Ya tienes una cuenta. Usa tu contraseña actual para aceptar.',

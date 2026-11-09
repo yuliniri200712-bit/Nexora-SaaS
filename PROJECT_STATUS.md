@@ -32,7 +32,7 @@ El usuario autorizó Fase 1 después de revisar la planificación. Se implement�
 | ESLint | Aprobado |
 | Prettier | Aprobado |
 | Build shared/API/web | Aprobado |
-| Unitarias | 14 aprobadas |
+| Unitarias | 17 aprobadas |
 | Integración contra MySQL real | 43 aprobadas con Prisma 7.10.1 |
 | E2E Chrome | 2 recorridos aprobados: inventario de Fase 1, y cliente, pedido con reserva, venta directa, reportes y móvil |
 | Responsive | Revisado en escritorio y móvil; comprobación de ancho en 320, 390, 768, 1024 y 1440 px |

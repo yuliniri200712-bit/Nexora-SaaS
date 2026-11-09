@@ -1,4 +1,4 @@
-import argon2 from 'argon2';
+import { hashPassword as passwordHash, verifyPassword } from '../../core/password.js';
 import { db, transaction } from '../../infrastructure/database.js';
 import { config } from '../../core/config.js';
 import { hash, token } from '../../core/crypto.js';
@@ -6,14 +6,7 @@ import { assert } from '../../core/errors.js';
 import type { TenantContext } from '../../core/context.js';
 import { sendLink } from '../../infrastructure/mail.js';
 import { audit } from '../../infrastructure/audit.js';
-const dummyHash = argon2.hash(token(), {
-  type: argon2.argon2id,
-  memoryCost: 19456,
-  timeCost: 2,
-  parallelism: 1,
-});
-export const passwordHash = (password: string) =>
-  argon2.hash(password, { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
+const dummyHash = passwordHash(token());
 export async function createSession(membershipId: string, tenantId: string) {
   const raw = token();
   await db.session.create({
@@ -54,7 +47,7 @@ export async function login(input: { email: string; password: string }) {
       },
     },
   });
-  const valid = await argon2.verify(user?.passwordHash ?? (await dummyHash), input.password);
+  const valid = await verifyPassword(user?.passwordHash ?? (await dummyHash), input.password);
   assert(
     valid && user?.active && user.memberships[0],
     401,
