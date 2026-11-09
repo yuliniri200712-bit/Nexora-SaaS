@@ -45,8 +45,8 @@ p {
 h1,
 h2,
 h3 {
-  font-family: Outfit, 'Segoe UI', sans-serif;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
 }
 h1 {
   font-size: 32px;
@@ -497,7 +497,7 @@ textarea {
 .welcome-banner h2 {
   font-size: 26px;
   margin: 10px 0 7px;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--tracking-display);
 }
 .welcome-banner p {
   font-size: 12px;
@@ -574,11 +574,11 @@ textarea {
   font-size: 11px;
 }
 .metric-card > strong {
-  font-family: Outfit, 'Segoe UI', sans-serif;
+  font-family: var(--font-display);
   display: block;
   font-weight: 600;
   font-size: 32px;
-  letter-spacing: -1px;
+  letter-spacing: var(--tracking-display);
   margin: 8px 0 7px;
   line-height: 1.2;
 }
@@ -633,7 +633,7 @@ textarea {
 }
 .panel-heading h2 {
   font-size: 16px;
-  letter-spacing: -0.025em;
+  letter-spacing: var(--tracking-display);
 }
 .panel-heading p {
   font-size: 11px;
@@ -1186,7 +1186,7 @@ td select {
 .auth-story h2 {
   font-size: 48px;
   line-height: 1.15;
-  letter-spacing: -2px;
+  letter-spacing: var(--tracking-display);
 }
 .auth-story h2 em {
   font-style: normal;
@@ -1670,7 +1670,7 @@ code {
   }
   .auth-story h2 {
     font-size: 30px;
-    letter-spacing: -1px;
+    letter-spacing: var(--tracking-display);
   }
   .auth-story h2 br {
     display: none;

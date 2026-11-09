@@ -65,4 +65,6 @@ Producción exige HTTPS, SMTP y TLS de base verificado, pero esas comprobaciones
 
 La migración inicial incluye FK compuestas y CHECK de stock/precios. Solo se aplicó a bases locales identificadas, nunca datos de producción. db:migrate:dev usa DATABASE_URL: revisar el entorno antes de ejecutarlo; el guard estricto de localhost se aplica al script de pruebas.
 
+La migración 202611090001_stock_movement_immutable crea triggers. Con el registro binario activo, MySQL exige log_bin_trust_function_creators=1 si la cuenta que migra no tiene privilegios elevados. compose.yaml lo activa en local y el workflow de CI lo fija antes de migrar. Un MySQL administrado en producción requerirá ese parámetro o una cuenta de migración con más privilegios.
+
 El workflow de GitHub define MySQL efímero, tipos/lint, unitarias, integración, build, auditoría y E2E. Está escrito, no ejecutado en GitHub. No hay remoto ni despliegue. Las claves de CI incluidas son exclusivamente de su contenedor efímero, no credenciales de este equipo.

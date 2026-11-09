@@ -2,6 +2,8 @@ name: nexora-local
 services:
   mysql:
     image: mysql:8.4
+    # Con el registro binario activo, sin esto el usuario de la aplicación no puede crear triggers.
+    command: ['--log-bin-trust-function-creators=1']
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run setup:local}
       MYSQL_DATABASE: nexora

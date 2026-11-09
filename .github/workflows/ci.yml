@@ -28,6 +28,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run db:generate
+      - name: Allow triggers for the migration user
+        run: mysql -h 127.0.0.1 -P 3307 -u root -pci-ephemeral-root -e "SET GLOBAL log_bin_trust_function_creators = 1"
       - run: node scripts/prepare-test-db.mjs
       - run: npm run typecheck
       - run: npm run lint

@@ -13,7 +13,7 @@ const cookieOptions = {
   sameSite: 'lax' as const,
   path: '/',
 };
-const limiter = rateLimit({
+export const limiter = rateLimit({
   windowMs: 15 * 60000,
   limit: config.NODE_ENV === 'test' ? 1000 : 20,
   standardHeaders: 'draft-8',

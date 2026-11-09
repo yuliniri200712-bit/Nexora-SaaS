@@ -1,3 +1,5 @@
+import '@fontsource-variable/inter/index.css';
+import '@fontsource-variable/outfit/index.css';
 import React, { Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';

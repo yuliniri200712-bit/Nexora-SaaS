@@ -459,4 +459,48 @@ describe('Fase 1 contra MySQL real', () => {
       (await b.post('/auth/login', { email, password: 'Changed-Test-Only-2026!' })).status,
     ).toBe(200);
   });
+  it('solicitudes simultáneas con la misma clave crean un solo movimiento', async () => {
+    const product = await a.post('/products', productInput(categoryA, `IDEM-${run}`));
+    const variantId: string = product.body.variants[0].id;
+    const rounds = 5;
+    for (let round = 0; round < rounds; round++) {
+      const key = randomUUID(),
+        body = { variantId, type: 'IN', quantity: 2, reason: 'TEST misma clave' };
+      const results = await Promise.all(
+        [1, 2, 3].map(() => a.post('/inventory/movements', body, key)),
+      );
+      expect(results.map((r) => r.status)).toEqual([201, 201, 201]);
+      expect(new Set(results.map((r) => r.body.id)).size).toBe(1);
+      expect(
+        await db.auditEvent.count({
+          where: { tenantId: tenantA, action: 'inventory.moved', resourceId: results[0]!.body.id },
+        }),
+      ).toBe(1);
+    }
+    expect(await db.stockMovement.count({ where: { tenantId: tenantA, variantId } })).toBe(rounds);
+    expect((await db.inventoryBalance.findUniqueOrThrow({ where: { variantId } })).onHand).toBe(
+      rounds * 2,
+    );
+  });
+  it('aceptar invitaciones usa el límite estricto de credenciales', async () => {
+    const client = new Client();
+    await client.init();
+    const response = await client.post('/invitations/accept', {
+      token: 'f'.repeat(64),
+      name: 'TEST Invitación inválida',
+      password,
+    });
+    expect(response.status).toBe(400);
+    expect(String(response.headers['ratelimit-policy'])).toContain('w=900');
+  });
+  it('MySQL impide modificar o borrar movimientos históricos fuera de la API', async () => {
+    const movement = await db.stockMovement.findFirstOrThrow({ where: { tenantId: tenantA } });
+    await expect(
+      db.stockMovement.update({ where: { id: movement.id }, data: { reason: 'TEST alterado' } }),
+    ).rejects.toThrow();
+    await expect(db.stockMovement.delete({ where: { id: movement.id } })).rejects.toThrow();
+    const stored = await db.stockMovement.findUniqueOrThrow({ where: { id: movement.id } });
+    expect(stored.reason).toBe(movement.reason);
+    expect(stored.quantity).toBe(movement.quantity);
+  });
 });

@@ -6,7 +6,7 @@ Guía compartida definida en Fase 0 para web, landing y Flutter. La web de Fase 
 
 Nombre: NEXORA. Eslogan: «Tu negocio. Todo conectado.». Personalidad: tecnológica, premium, confiable y empresarial; priorizar claridad para operaciones frecuentes de comercio.
 
-La [lámina original](../brand/nexora-reference.png) es la fuente visual principal. Se conserva completa y sin modificar. No es un SVG ni un conjunto de assets transparentes. No se ha reconstruido la N, sustituido el wordmark por una fuente ni extraído un favicon.
+La [lámina original](../brand/nexora-reference.png) es la fuente visual principal. Se conserva completa y sin modificar. No es un SVG ni un conjunto de assets transparentes. No se ha reconstruido la N ni sustituido el wordmark por una fuente. Favicon e iconos de aplicación se extrajeron de la lámina con autorización del usuario; el método está en el [README de marca](../brand/README.md).
 
 Antes de integrar el logo en Fase 1: solicitar archivo maestro SVG/PDF o PNG transparente y reglas de uso, si existen. Si no existe maestro, acordar extracción desde la referencia y comparar visualmente el resultado antes de aceptarlo. No inventar trazados ni afirmar fidelidad vectorial. Esta necesidad no bloquea la planificación.
 
@@ -39,7 +39,7 @@ La comprobación de diez pares planos pasó en Fase 0; ratios y método en [veri
 
 ## Tipografía, espacio y forma
 
-- Outfit para encabezados; Inter para contenido e interfaz, con fallback sans-serif. Son sugerencias del encargo, no reemplazan el wordmark. Verificar licencia y distribución antes de empaquetar fuentes, preferiblemente alojadas localmente.
+- Outfit para encabezados; Inter para contenido e interfaz, con fallback sans-serif. No reemplazan el wordmark. Se empaquetan localmente con @fontsource-variable (licencia OFL-1.1), sin peticiones a servicios externos. Tokens: `--font-body`, `--font-display` y `--tracking-display`.
 - Escala propuesta: 12 px metadatos, 14 px tablas, 16 px cuerpo, 20/24/32 px títulos; altura de línea 1,5 para cuerpo y 1,2 para títulos. Importes con cifras tabulares. Soportar zoom 200% y escalado de texto móvil.
 - Espaciado: 4, 8, 12, 16, 24, 32 y 48 px. Grid de 8 px con ajustes de 4 px.
 - Radios: 8 px inputs/botones, 12 px tarjetas, 16 px diálogos; pill solo en estados. Sombra sutil `0 4px 20px rgba(0,43,37,0.06)`.

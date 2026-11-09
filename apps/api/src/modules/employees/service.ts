@@ -80,23 +80,33 @@ export async function invite(context: TenantContext, email: string, role: Role) 
   }
   return { id: invitation.id, mailMode: config.MAIL_TRANSPORT === 'file' ? 'local' : 'email' };
 }
+function pendingInvitation<
+  T extends {
+    acceptedAt: Date | null;
+    revokedAt: Date | null;
+    expiresAt: Date;
+    tenant: { active: boolean };
+  },
+>(entry: T | null): T {
+  assert(
+    entry &&
+      !entry.acceptedAt &&
+      !entry.revokedAt &&
+      entry.expiresAt > new Date() &&
+      entry.tenant.active,
+    400,
+    'INVALID_INVITATION',
+    'La invitación expiró o ya fue utilizada.',
+  );
+  return entry;
+}
 export async function accept(input: { token: string; name: string; password: string }) {
+  const lookup = { where: { tokenHash: hash(input.token) }, include: { tenant: true } };
+  // Argon2 es costoso: un token inválido no debe llegar a calcularlo.
+  pendingInvitation(await db.invitation.findUnique(lookup));
   const nextHash = await passwordHash(input.password);
   return transaction(async (tx) => {
-    const entry = await tx.invitation.findUnique({
-      where: { tokenHash: hash(input.token) },
-      include: { tenant: true },
-    });
-    assert(
-      entry &&
-        !entry.acceptedAt &&
-        !entry.revokedAt &&
-        entry.expiresAt > new Date() &&
-        entry.tenant.active,
-      400,
-      'INVALID_INVITATION',
-      'La invitación expiró o ya fue utilizada.',
-    );
+    const entry = pendingInvitation(await tx.invitation.findUnique(lookup));
     let user = await tx.user.findUnique({ where: { email: entry.email } });
     if (user) {
       assert(

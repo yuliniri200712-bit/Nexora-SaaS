@@ -1,12 +1,12 @@
 # Fase 1 — Implementación y verificación
 
-Fecha: 2026-11-08, America/Bogota. Fase 1 autorizada; Fase 2 no autorizada.
+Fecha: 2026-11-08, America/Bogota; pruebas repetidas el 2026-11-09. Fase 1 autorizada; Fase 2 no autorizada.
 
 ## Alcance implementado
 
 | Área | Resultado |
 | --- | --- |
-| Base | npm workspaces, TypeScript estricto, Vite/React, Express modular, lint, pruebas y build; Git local sin remoto ni commit |
+| Base | npm workspaces, TypeScript estricto, Vite/React, Express modular, lint, pruebas y build; Git local con primer commit 79515d6 en master, sin remoto |
 | Datos | MySQL 8.4 en Docker, esquema Prisma, migración versionada, FK compuestas y restricciones CHECK |
 | Identidad | Registro de propietario/comercio, login/logout, sesión opaca, renovación, selección validada de comercio |
 | Seguridad | Argon2id, expiración por inactividad/absoluta, CSRF/origen, rate limiting, HttpOnly, roles backend, errores seguros |
@@ -33,7 +33,7 @@ Los movimientos de inventario no representan ventas. No hay cifras simuladas de 
 - Stock con aislamiento Serializable, control de versión, CHECK, idempotencia y escritura atómica de movimiento/auditoría. No hay reservas de pedidos todavía.
 - Una imagen por producto bajo .data/uploads/tenant, nombres generados, endpoint privado. Al reemplazar imágenes pueden quedar archivos previos sin referencia; limpieza y retención requieren solución antes de producción.
 - Correo por archivo en .data/mailbox; pruebas en .data/test/mailbox. SMTP disponible como adaptador, sin prueba con proveedor. No se envió correo a nadie durante el desarrollo.
-- Logo mediante encuadre CSS de la imagen original. No se redibujó ni se creó un SVG. La copia PNG permanece idéntica. Se usan fallbacks de fuentes del sistema; no se descargaron Outfit/Inter.
+- Logo mediante encuadre CSS de la imagen original. No se redibujó ni se creó un SVG. La copia PNG permanece idéntica. Favicon e iconos de aplicación son recortes PNG de la lámina, autorizados por el usuario el 2026-11-09. Outfit e Inter se sirven localmente con @fontsource-variable 5.3.0 (OFL-1.1); se conservan fuentes del sistema solo como respaldo.
 - La API escucha solo en loopback. Esta entrega no es una configuración definitiva de hosting.
 
 ## Verificación realizada
@@ -46,7 +46,7 @@ Los movimientos de inventario no representan ventas. No hay cifras simuladas de 
 | Prettier | Sin diferencias de formato |
 | Build API/web/shared | Completado |
 | Unitarias | 6 aprobadas |
-| Integración MySQL real | 18 aprobadas con Prisma 7.10.1 |
+| Integración MySQL real | 21 aprobadas con Prisma 7.10.1 |
 | E2E Chrome | Recorrido completo aprobado |
 | Auditoría npm | 0 vulnerabilidades en la consulta final de dependencias |
 
@@ -57,6 +57,12 @@ E2E cubre registro, categoría, producto, entrada de stock, recarga con persiste
 Se verificó ausencia de desbordamiento horizontal de página a 320, 390, 768, 1024 y 1440 px. Las tablas permiten desplazamiento horizontal y enfoque por teclado. El diff de código pasa la comprobación de espacios. La copia literal del prompt conserva un salto Markdown de dos espacios en su línea 17, que git diff --check señala; no se alteró el documento fuente para eliminar esa advertencia. .gitattributes conserva bytes de referencias y migraciones para no modificar hashes por conversión de saltos de línea.
 
 La recarga y desconexión/reconexión Prisma verifican persistencia. No se afirma restauración de backup, prueba de carga, auditoría de penetración, accesibilidad exhaustiva o correo SMTP real. CI está definido, pero no ejecutado en GitHub.
+
+Revalidación del 2026-11-09: TypeScript en los tres workspaces, ESLint, Prettier, 6 unitarias, build web con salida temporal fuera del repositorio, npm audit con 0 vulnerabilidades, migraciones sin pendientes en nexora_test, 18 de integración contra MySQL real y E2E en Chrome (1 de 1) aprobados. Los conteos de la base nexora no cambiaron durante las pruebas. Ese día API y shared se comprobaron solo con tipos; su build corresponde a la verificación anterior. No se repitió la comprobación de anchos responsive, y las capturas regeneradas por E2E no se revisaron visualmente.
+
+Identidad visual, 2026-11-09, después del commit 79515d6 y pendiente de confirmar: en Chrome, los tres iconos responden 200 como PNG, Inter y Outfit se cargan desde el propio origen y las siete rutas del panel no desbordan a 320, 390, 768, 1024 ni 1440 px. Se revisaron visualmente el registro en escritorio y el dashboard en escritorio y móvil. TypeScript, ESLint, Prettier, 6 unitarias, 18 de integración, E2E, build web y npm audit aprobados con estos cambios. El build web incluye 9 archivos WOFF2 (259 KB en total); cada navegador descarga solo los subconjuntos que usa. El maestro vectorial sigue pendiente.
+
+Ajustes previos a Fase 2, 2026-11-09, pendientes de confirmar: POST /invitations/accept usa el límite de credenciales (20 intentos cada 15 minutos) y valida el token antes de calcular Argon2. La migración 202611090001_stock_movement_immutable añade triggers que rechazan UPDATE y DELETE sobre StockMovement; las correcciones se registran como movimientos nuevos. Se añadieron tres pruebas: límite de invitaciones, inmutabilidad en MySQL y solicitudes simultáneas con la misma clave de idempotencia (5 rondas de 3). Las dos primeras fallaron antes de los cambios; la de concurrencia pasó con el código existente. Migración aplicada a nexora y nexora_test sin cambios en los conteos de nexora. 21 de integración aprobadas en cuatro ejecuciones seguidas, y TypeScript, ESLint, Prettier, unitarias, E2E, build de API y web y npm audit aprobados. El paso de CI añadido para permitir triggers no se ha ejecutado.
 
 ## Operación y límites
 

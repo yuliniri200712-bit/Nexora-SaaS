@@ -19,11 +19,12 @@ import * as inventory from './modules/inventory/service.js';
 import * as reporting from './modules/reporting/service.js';
 import * as employees from './modules/employees/service.js';
 import * as media from './modules/media/service.js';
+import { limiter as credentialLimiter } from './modules/auth/routes.js';
 export const apiRoutes = Router();
 const id = z.uuid(),
   page = z.coerce.number().int().min(1).max(100000).default(1);
 const rangeSchema = z.object({ from: z.iso.date(), to: z.iso.date() });
-apiRoutes.post('/invitations/accept', async (req, res) =>
+apiRoutes.post('/invitations/accept', credentialLimiter, async (req, res) =>
   res.json(await employees.accept(acceptInvitationSchema.parse(req.body))),
 );
 apiRoutes.use(authenticate);
