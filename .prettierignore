@@ -1,0 +1,7 @@
+node_modules
+**/dist
+.data
+brand
+docs/references
+apps/web/public
+package-lock.json

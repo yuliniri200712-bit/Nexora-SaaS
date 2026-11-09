@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+}
+enum Role {
+  OWNER
+  ADMIN
+  INVENTORY
+  SELLER
+  COURIER
+}
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+model User {
+  id String @id @default(uuid()) @db.Char(36)
+  email String @unique @db.VarChar(191)
+  name String @db.VarChar(100)
+  passwordHash String @db.VarChar(255)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  resets PasswordReset[]
+}
+model Tenant {
+  id String @id @default(uuid()) @db.Char(36)
+  name String @db.VarChar(120)
+  active Boolean @default(true)
+  timezone String @default("America/Bogota") @db.VarChar(64)
+  currency String @default("COP") @db.Char(3)
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  categories Category[]
+  products Product[]
+  invitations Invitation[]
+  locations Location[]
+}
+model Membership {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  userId String @db.Char(36)
+  role Role
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  user User @relation(fields:[userId],references:[id])
+  sessions Session[]
+  movements StockMovement[]
+  audits AuditEvent[]
+  @@unique([tenantId,id])
+  @@unique([tenantId,userId])
+}
+model Session {
+  id String @id @default(uuid()) @db.Char(36)
+  tokenHash String @unique @db.Char(64)
+  tenantId String @db.Char(36)
+  membershipId String @db.Char(36)
+  expiresAt DateTime
+  lastSeenAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  membership Membership @relation(fields:[tenantId,membershipId],references:[tenantId,id],onDelete:Cascade)
+  @@index([membershipId])
+}
+model PasswordReset {
+  id String @id @default(uuid()) @db.Char(36)
+  userId String @db.Char(36)
+  tokenHash String @unique @db.Char(64)
+  expiresAt DateTime
+  usedAt DateTime?
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+}
+model Invitation {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  email String @db.VarChar(191)
+  role Role
+  tokenHash String @unique @db.Char(64)
+  expiresAt DateTime
+  acceptedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  @@index([tenantId,email])
+}
+model Category {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  name String @db.VarChar(100)
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  products Product[]
+  @@unique([tenantId,id])
+  @@unique([tenantId,name])
+}
+model Product {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  name String @db.VarChar(150)
+  description String @db.Text
+  categoryId String? @db.Char(36)
+  active Boolean @default(true)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  category Category? @relation(fields:[tenantId,categoryId],references:[tenantId,id],onDelete:Restrict,onUpdate:Restrict)
+  variants ProductVariant[]
+  image ProductImage?
+  @@unique([tenantId,id])
+  @@index([tenantId,active,name])
+}
+model ProductVariant {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  productId String @db.Char(36)
+  sku String @db.VarChar(64)
+  name String @db.VarChar(100)
+  price Decimal @db.Decimal(18,2)
+  lowStockThreshold Int @default(5)
+  product Product @relation(fields:[tenantId,productId],references:[tenantId,id])
+  balance InventoryBalance?
+  movements StockMovement[]
+  @@unique([tenantId,id])
+  @@unique([tenantId,sku])
+}
+model Location {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @unique @db.Char(36)
+  name String @default("Almacén principal") @db.VarChar(100)
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  balances InventoryBalance[]
+  @@unique([tenantId,id])
+}
+model InventoryBalance {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  variantId String @unique @db.Char(36)
+  locationId String @db.Char(36)
+  onHand Int @default(0)
+  reserved Int @default(0)
+  version Int @default(0)
+  variant ProductVariant @relation(fields:[tenantId,variantId],references:[tenantId,id])
+  location Location @relation(fields:[tenantId,locationId],references:[tenantId,id])
+  @@unique([tenantId,variantId])
+  @@unique([tenantId,id])
+}
+model StockMovement {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  variantId String @db.Char(36)
+  actorId String @db.Char(36)
+  type MovementType
+  quantity Int
+  reason String @db.VarChar(500)
+  before Int
+  after Int
+  idempotencyKey String @db.VarChar(100)
+  requestHash String @db.Char(64)
+  createdAt DateTime @default(now())
+  variant ProductVariant @relation(fields:[tenantId,variantId],references:[tenantId,id])
+  actor Membership @relation(fields:[tenantId,actorId],references:[tenantId,id])
+  @@unique([tenantId,actorId,idempotencyKey])
+  @@index([tenantId,createdAt,id])
+}
+model ProductImage {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  productId String @unique @db.Char(36)
+  objectKey String @db.VarChar(100)
+  size Int
+  createdAt DateTime @default(now())
+  product Product @relation(fields:[tenantId,productId],references:[tenantId,id])
+  @@unique([tenantId,id])
+  @@unique([tenantId,productId])
+}
+model AuditEvent {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  actorId String @db.Char(36)
+  action String @db.VarChar(80)
+  resourceId String @db.Char(36)
+  requestId String @db.VarChar(64)
+  createdAt DateTime @default(now())
+  actor Membership @relation(fields:[tenantId,actorId],references:[tenantId,id])
+  @@index([tenantId,createdAt])
+}

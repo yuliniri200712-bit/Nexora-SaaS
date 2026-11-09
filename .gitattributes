@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.png binary
+docs/references/* -text
+apps/api/prisma/migrations/**/migration.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
