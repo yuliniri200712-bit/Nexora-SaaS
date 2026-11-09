@@ -6,9 +6,9 @@ Guía compartida definida en Fase 0 para web, landing y Flutter. La web de Fase 
 
 Nombre: NEXORA. Eslogan: «Tu negocio. Todo conectado.». Personalidad: tecnológica, premium, confiable y empresarial; priorizar claridad para operaciones frecuentes de comercio.
 
-La [lámina original](../brand/nexora-reference.png) es la fuente visual principal. Se conserva completa y sin modificar. No es un SVG ni un conjunto de assets transparentes. No se ha reconstruido la N ni sustituido el wordmark por una fuente. Favicon e iconos de aplicación se extrajeron de la lámina con autorización del usuario; el método está en el [README de marca](../brand/README.md).
+La [lámina original](../brand/nexora-reference.png) es la fuente visual principal. Se conserva completa y sin modificar. No es un SVG ni un conjunto de assets transparentes. El logo de la interfaz es un SVG reconstruido sobre la lámina, y favicon e iconos de aplicación son recortes de ella, ambos con autorización del usuario. El método y la coincidencia medida están en el [README de marca](../brand/README.md).
 
-Antes de integrar el logo en Fase 1: solicitar archivo maestro SVG/PDF o PNG transparente y reglas de uso, si existen. Si no existe maestro, acordar extracción desde la referencia y comparar visualmente el resultado antes de aceptarlo. No inventar trazados ni afirmar fidelidad vectorial. Esta necesidad no bloquea la planificación.
+Si aparece el archivo original de diseño (SVG/PDF) o reglas de uso, sustituyen a la reconstrucción. No presentar el SVG actual como archivo original ni modificar su geometría sin comparar de nuevo con la lámina.
 
 Usar logo claro sobre verde oscuro y versión oscura sobre superficie clara solo cuando esas variantes estén disponibles. Conservar proporción, no estirar, rotar, recolorear arbitrariamente ni añadir sombras al símbolo. Área de seguridad provisional: al menos 25% de la altura del símbolo a cada lado; validarla con el maestro. Tamaño mínimo se decide con pruebas de legibilidad, no reduciendo toda la lámina a un icono.
 
@@ -31,7 +31,9 @@ Usar logo claro sobre verde oscuro y versión oscura sobre superficie clara solo
 | status.warning | #805500 / #FFF5D6 | Texto/fondo de advertencia |
 | status.error | #B42318 / #FEF3F2 | Texto/fondo de error |
 
-Degradado de marca: `linear-gradient(135deg, #7CFF00 0%, #16D68A 48%, #00B9B1 100%)`. Reservarlo para detalles de marca y acentos; evitar fondos de tablas o grandes áreas de lectura. No usar blanco sobre lima/turquesa para texto normal. Botón primario: fondo dark y texto blanco; variante de campaña: fondo lima y texto dark. Los badges llevan texto e icono/etiqueta, no solo color.
+La fuente única de colores es [tokens.css](../packages/design-system/tokens.css), agrupada por función: superficies, texto, bordes, estados, superficies oscuras, gráficos, ilustración y elevación. Las hojas de estilo y componentes usan solo variables; un color nuevo se añade primero como token.
+
+Degradado de marca (`--brand-gradient`): `linear-gradient(135deg, #7CFF00 0%, #16D68A 48%, #00B9B1 100%)`. Reservarlo para detalles de marca y acentos; evitar fondos de tablas o grandes áreas de lectura. No usar blanco sobre lima/turquesa para texto normal. Botón primario: fondo dark y texto blanco; variante de campaña: fondo lima y texto dark. Los badges llevan texto e icono/etiqueta, no solo color.
 
 Objetivo de contraste: al menos 4,5:1 para texto normal y 3:1 para texto grande/controles relevantes. El contraste de tokens planos se verifica por cálculo; la accesibilidad de pantallas, estados y degradados requiere pruebas en la implementación.
 

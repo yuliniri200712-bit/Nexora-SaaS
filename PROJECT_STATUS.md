@@ -44,6 +44,8 @@ Identidad visual, 2026-11-09, commit fa07a9b: favicon e iconos de aplicación a�
 
 Ajustes previos a Fase 2, 2026-11-09, commit fa07a9b: aceptar invitaciones usa el límite estricto de credenciales y valida el token antes de calcular Argon2; dos triggers impiden modificar o borrar movimientos de stock en MySQL; nueva prueba de solicitudes simultáneas con la misma clave de idempotencia, que pasó sin necesidad de corregir código. La migración se aplicó a nexora y nexora_test, y los conteos de nexora no cambiaron. Las 21 pruebas de integración aprobaron en cuatro ejecuciones seguidas. TypeScript, ESLint, Prettier, 6 unitarias, E2E, build de API y web con salida fuera del repositorio y npm audit también aprobados. El paso de CI añadido para permitir triggers no se ha ejecutado.
 
+Logo vectorial y colores, 2026-11-09: SVG del logo y del símbolo reconstruidos sobre la lámina (coincidencia por superposición: 99,4 % símbolo, 98,1 % palabra). Todos los colores de styles.css y del gráfico del dashboard están en tokens; quedan 0 literales. Con los mismos datos, 18 capturas antes y después mantienen su tamaño y cambian como máximo un 1,2 % de los píxeles. Los textos por debajo de WCAG AA en esas pantallas pasaron de 14 a 0, sin evaluar texto sobre degradados. TypeScript, ESLint, Prettier, 6 unitarias, 21 de integración, E2E, build web y npm audit aprobados, sin desbordamiento en las siete rutas del panel.
+
 Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png y test-results/dashboard-mobile.png, revisadas visualmente. La verificación no equivale a una auditoría de producción, carga o accesibilidad exhaustiva. CI está definido pero no se ejecutó en GitHub.
 
 ## Límites y pendientes
@@ -51,7 +53,7 @@ Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png
 - Correo configurado como buzón local en .data/mailbox: invitaciones y recuperación funcionan con enlaces locales; no se envió correo real. SMTP preparado, sin proveedor verificado.
 - Una ubicación por comercio, cantidades enteras, una imagen por producto y roles predefinidos. Variantes existentes se conservan por trazabilidad.
 - Almacenamiento privado local; limpieza de imágenes sustituidas y almacenamiento cloud pendientes antes de producción.
-- Logo original usado mediante encuadre CSS, sin rediseño ni SVG inventado. Favicon e iconos de aplicación son recortes PNG de la lámina, autorizados por el usuario. Maestro vectorial pendiente: los recortes no sirven por encima de 250 px.
+- El logo SVG es una reconstrucción sobre la lámina, autorizada por el usuario, no el archivo original de diseño. Favicon e iconos de aplicación son recortes PNG de la lámina y no sirven por encima de 250 px. Solo hay versión del logo para fondos oscuros.
 - No hay ventas, pedidos, WhatsApp, Flutter, seguimiento, suscripciones, pagos o facturación fiscal.
 - MySQL necesita log_bin_trust_function_creators=1 para que el usuario de la aplicación cree triggers con el registro binario activo; compose.yaml lo configura en local. En producción habrá que activarlo o migrar con una cuenta con más privilegios.
 - Sin hosting público, monitoreo productivo, backup/restore ensayado ni certificación de producción.

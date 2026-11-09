@@ -170,30 +170,34 @@ export function DashboardPage() {
                   >
                     <defs>
                       <linearGradient id="stockFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#16d68a" stopOpacity={0.18} />
-                        <stop offset="100%" stopColor="#16d68a" stopOpacity={0} />
+                        <stop offset="0%" stopColor="var(--brand-green)" stopOpacity={0.18} />
+                        <stop offset="100%" stopColor="var(--brand-green)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 5" vertical={false} stroke="#e8eeea" />
+                    <CartesianGrid
+                      strokeDasharray="3 5"
+                      vertical={false}
+                      stroke="var(--border-soft)"
+                    />
                     <XAxis
                       dataKey="date"
                       tickFormatter={(v) => String(v).slice(8)}
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#56665f' }}
+                      tick={{ fontSize: 12, fill: 'var(--muted)' }}
                     />
                     <YAxis
                       allowDecimals={false}
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#56665f' }}
+                      tick={{ fontSize: 12, fill: 'var(--muted)' }}
                     />
                     <Tooltip />
                     <Area
                       type="monotone"
                       dataKey="incoming"
                       name="Entradas"
-                      stroke="#087448"
+                      stroke="var(--chart-1)"
                       fill="url(#stockFill)"
                       strokeWidth={2.5}
                       isAnimationActive={false}
@@ -202,7 +206,7 @@ export function DashboardPage() {
                       type="monotone"
                       dataKey="outgoing"
                       name="Salidas"
-                      stroke="#00a69f"
+                      stroke="var(--chart-2)"
                       fill="transparent"
                       strokeWidth={2}
                       isAnimationActive={false}

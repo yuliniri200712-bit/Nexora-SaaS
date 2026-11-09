@@ -3,21 +3,77 @@
   --brand-lime: #7cff00;
   --brand-teal: #00b9b1;
   --brand-green: #16d68a;
+  --brand-dark-hover: #064c40;
+  --brand-gradient: linear-gradient(135deg, #7cff00 0%, #16d68a 48%, #00b9b1 100%);
+
+  /* Superficies claras */
   --canvas: #f5f8f7;
   --surface: #fff;
+  --surface-sunken: #f8faf8;
+  --surface-tint: #f0f5f1;
+  --surface-accent: #e9f2ec;
+  --hover-overlay: #73857d14;
+
+  /* Texto sobre superficies claras */
   --text: #26332f;
+  --text-soft: #3e5147;
   --muted: #56665f;
+  --subtle: #64746c;
+  --accent-text: #1a5a3b;
+
+  /* Bordes y controles */
   --border: #dce5e1;
+  --border-soft: #e8eeea;
   --control: #73857d;
   --focus: #006d68;
+  --focus-ring: #006d6816;
+
+  /* Estados */
   --success: #087448;
   --success-bg: #e6f7ee;
+  --success-border: #cce9d5;
   --warning: #805500;
   --warning-bg: #fff5d6;
   --error: #b42318;
   --error-bg: #fef3f2;
+  --error-border: #f3c8c4;
+  --info: #0f766e;
+  --info-bg: #e8f7f4;
+
+  /* Sobre superficies oscuras de marca */
+  --on-dark-strong: #fff;
+  --on-dark: #edf6f0;
+  --on-dark-muted: #afc6bd;
+  --on-dark-subtle: #819f91;
+  --on-dark-accent: #a6ef8b;
+  --on-dark-fill: #ffffff0a;
+  --on-dark-fill-strong: #ffffff16;
+
+  /* Gráficos */
+  --chart-1: #087448;
+  --chart-2: #00a69f;
+
+  /* Ilustración de marca */
+  --art-line: #8feab929;
+  --art-line-soft: #8feab912;
+  --art-glow: #16d68a0c;
+  --art-border: #6cbd8b38;
+  --art-tile: linear-gradient(135deg, #204c38, #00372d);
+  --art-label: #164734c9;
+  --banner-glow: #bcecb6;
+  --banner-line: #749a7029;
+  --banner-ring: #749a700e;
+
+  /* Elevación */
   --radius: 12px;
   --shadow: 0 4px 20px rgba(0, 43, 37, 0.04);
+  --shadow-tab: 0 1px 4px #002b2508;
+  --shadow-popover: 0 12px 35px #002b2520;
+  --shadow-modal: 0 20px 100px #002b2533;
+  --shadow-art: 20px 25px 50px #0003;
+  --overlay: #001d196b;
+
+  /* Tipografía */
   --font-body: 'Inter Variable', 'Segoe UI', sans-serif;
   --font-display: 'Outfit Variable', 'Segoe UI', sans-serif;
   --tracking-display: -0.015em;
