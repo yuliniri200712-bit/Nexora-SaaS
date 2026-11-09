@@ -6,7 +6,7 @@
 
 **Fase 1 completada y verificada para ejecución local. Fase 2 no iniciada ni autorizada.**
 
-El usuario autorizó Fase 1 después de revisar la planificación. Se implementó la aplicación local con persistencia real MySQL. Git tiene un primer commit local de la Fase 1 (79515d6) en la rama master, sin remoto. No se publicó ni desplegó el producto.
+El usuario autorizó Fase 1 después de revisar la planificación. Se implementó la aplicación local con persistencia real MySQL. Git tiene en la rama master el commit local de la Fase 1 (79515d6) y el de identidad y ajustes previos a Fase 2 (fa07a9b), sin remoto. No se publicó ni desplegó el producto.
 
 ## Implementado
 
@@ -36,13 +36,13 @@ El usuario autorizó Fase 1 después de revisar la planificación. Se implement�
 | npm audit | 0 vulnerabilidades reportadas |
 | Base de desarrollo | Conteo del 2026-11-09: 1 usuario, 1 comercio, 0 productos y 0 movimientos, sin cambios tras las pruebas; fixtures únicamente en nexora_test |
 | Secretos y datos locales | .env, .data, node_modules y dist excluidos por Git; contenido del commit revisado sin valores de .env |
-| Git | Primer commit local 79515d6 en master con 88 archivos; sin remoto |
+| Git | Commits locales 79515d6 (Fase 1, 88 archivos) y fa07a9b (identidad y ajustes, 21 archivos) en master; sin remoto |
 
 Revalidación del 2026-11-09 en este equipo, con Node 24.19.0: TypeScript en los tres workspaces, ESLint, Prettier, 6 unitarias, build web con salida temporal fuera del repositorio, npm audit con 0 vulnerabilidades, migraciones sin pendientes en nexora_test, 18 de integración contra MySQL real y E2E en Chrome aprobados. Ese día API y shared se comprobaron solo con tipos; su build corresponde a la evidencia del 2026-11-08. No se repitió la comprobación de anchos responsive, y las capturas regeneradas por E2E no se revisaron visualmente.
 
-Identidad visual, 2026-11-09, pendiente de confirmar en Git: favicon e iconos de aplicación añadidos; Outfit e Inter servidas localmente con licencia OFL-1.1; tipografía e interletraje de títulos en tokens. En Chrome se comprobaron los iconos, la carga de fuentes desde el propio origen y la ausencia de desbordamiento en las siete rutas del panel a 320, 390, 768, 1024 y 1440 px. TypeScript, ESLint, Prettier, 6 unitarias, 18 de integración, E2E, build web y npm audit aprobados con estos cambios.
+Identidad visual, 2026-11-09, commit fa07a9b: favicon e iconos de aplicación añadidos; Outfit e Inter servidas localmente con licencia OFL-1.1; tipografía e interletraje de títulos en tokens. En Chrome se comprobaron los iconos, la carga de fuentes desde el propio origen y la ausencia de desbordamiento en las siete rutas del panel a 320, 390, 768, 1024 y 1440 px. TypeScript, ESLint, Prettier, 6 unitarias, 18 de integración, E2E, build web y npm audit aprobados con estos cambios.
 
-Ajustes previos a Fase 2, 2026-11-09, pendientes de confirmar en Git: aceptar invitaciones usa el límite estricto de credenciales y valida el token antes de calcular Argon2; dos triggers impiden modificar o borrar movimientos de stock en MySQL; nueva prueba de solicitudes simultáneas con la misma clave de idempotencia, que pasó sin necesidad de corregir código. La migración se aplicó a nexora y nexora_test, y los conteos de nexora no cambiaron. Las 21 pruebas de integración aprobaron en cuatro ejecuciones seguidas. TypeScript, ESLint, Prettier, 6 unitarias, E2E, build de API y web con salida fuera del repositorio y npm audit también aprobados. El paso de CI añadido para permitir triggers no se ha ejecutado.
+Ajustes previos a Fase 2, 2026-11-09, commit fa07a9b: aceptar invitaciones usa el límite estricto de credenciales y valida el token antes de calcular Argon2; dos triggers impiden modificar o borrar movimientos de stock en MySQL; nueva prueba de solicitudes simultáneas con la misma clave de idempotencia, que pasó sin necesidad de corregir código. La migración se aplicó a nexora y nexora_test, y los conteos de nexora no cambiaron. Las 21 pruebas de integración aprobaron en cuatro ejecuciones seguidas. TypeScript, ESLint, Prettier, 6 unitarias, E2E, build de API y web con salida fuera del repositorio y npm audit también aprobados. El paso de CI añadido para permitir triggers no se ha ejecutado.
 
 Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png y test-results/dashboard-mobile.png, revisadas visualmente. La verificación no equivale a una auditoría de producción, carga o accesibilidad exhaustiva. CI está definido pero no se ejecutó en GitHub.
 
