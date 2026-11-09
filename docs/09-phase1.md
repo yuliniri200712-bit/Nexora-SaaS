@@ -6,7 +6,7 @@ Fecha: 2026-11-08, America/Bogota; pruebas repetidas el 2026-11-09. Fase 1 autor
 
 | Área | Resultado |
 | --- | --- |
-| Base | npm workspaces, TypeScript estricto, Vite/React, Express modular, lint, pruebas y build; Git local con commits 79515d6 y fa07a9b en master, sin remoto |
+| Base | npm workspaces, TypeScript estricto, Vite/React, Express modular, lint, pruebas y build; Git en master, publicado en un repositorio privado de GitHub |
 | Datos | MySQL 8.4 en Docker, esquema Prisma, migración versionada, FK compuestas y restricciones CHECK |
 | Identidad | Registro de propietario/comercio, login/logout, sesión opaca, renovación, selección validada de comercio |
 | Seguridad | Argon2id, expiración por inactividad/absoluta, CSRF/origen, rate limiting, HttpOnly, roles backend, errores seguros |
@@ -56,7 +56,7 @@ E2E cubre registro, categoría, producto, entrada de stock, recarga con persiste
 
 Se verificó ausencia de desbordamiento horizontal de página a 320, 390, 768, 1024 y 1440 px. Las tablas permiten desplazamiento horizontal y enfoque por teclado. El diff de código pasa la comprobación de espacios. La copia literal del prompt conserva un salto Markdown de dos espacios en su línea 17, que git diff --check señala; no se alteró el documento fuente para eliminar esa advertencia. .gitattributes conserva bytes de referencias y migraciones para no modificar hashes por conversión de saltos de línea.
 
-La recarga y desconexión/reconexión Prisma verifican persistencia. No se afirma restauración de backup, prueba de carga, auditoría de penetración, accesibilidad exhaustiva o correo SMTP real. CI está definido, pero no ejecutado en GitHub.
+La recarga y desconexión/reconexión Prisma verifican persistencia. No se afirma restauración de backup, prueba de carga, auditoría de penetración, accesibilidad exhaustiva o correo SMTP real. CI se activa al subir a GitHub; su resultado aún no se ha verificado.
 
 Revalidación del 2026-11-09: TypeScript en los tres workspaces, ESLint, Prettier, 6 unitarias, build web con salida temporal fuera del repositorio, npm audit con 0 vulnerabilidades, migraciones sin pendientes en nexora_test, 18 de integración contra MySQL real y E2E en Chrome (1 de 1) aprobados. Los conteos de la base nexora no cambiaron durante las pruebas. Ese día API y shared se comprobaron solo con tipos; su build corresponde a la verificación anterior. No se repitió la comprobación de anchos responsive, y las capturas regeneradas por E2E no se revisaron visualmente.
 

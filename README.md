@@ -68,7 +68,7 @@ La integración solo admite nexora_test en localhost. Para E2E, detener primero 
     # Terminal 3: requiere Google Chrome instalado
     npm.cmd run test:e2e
 
-La suite crea comercios identificados como TEST. Capturas y límites de verificación se describen en el [informe de Fase 1](docs/09-phase1.md). El workflow CI está preparado; no se ha ejecutado en GitHub ni se configuró un remoto.
+La suite crea comercios identificados como TEST. Capturas y límites de verificación se describen en el [informe de Fase 1](docs/09-phase1.md). El workflow CI se activa al subir a GitHub; su resultado se consulta en la pestaña Actions del repositorio.
 
 ## Documentación y código
 

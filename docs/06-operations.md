@@ -67,4 +67,4 @@ La migración inicial incluye FK compuestas y CHECK de stock/precios. Solo se ap
 
 La migración 202611090001_stock_movement_immutable crea triggers. Con el registro binario activo, MySQL exige log_bin_trust_function_creators=1 si la cuenta que migra no tiene privilegios elevados. compose.yaml lo activa en local y el workflow de CI lo fija antes de migrar. Un MySQL administrado en producción requerirá ese parámetro o una cuenta de migración con más privilegios.
 
-El workflow de GitHub define MySQL efímero, tipos/lint, unitarias, integración, build, auditoría y E2E. Está escrito, no ejecutado en GitHub. No hay remoto ni despliegue. Las claves de CI incluidas son exclusivamente de su contenedor efímero, no credenciales de este equipo.
+El workflow de GitHub define MySQL efímero, tipos/lint, unitarias, integración, build, auditoría y E2E. Se activa al subir a GitHub; su resultado aún no se ha verificado. El código está en un repositorio privado y no hay despliegue. Las claves de CI incluidas son exclusivamente de su contenedor efímero, no credenciales de este equipo.

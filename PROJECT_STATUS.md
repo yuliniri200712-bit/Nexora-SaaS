@@ -8,7 +8,7 @@
 
 La Fase 2 (clientes, ventas, pedidos, reservas y reportes de ventas) está en [su informe](docs/10-phase2.md), que incluye las decisiones de negocio pendientes de confirmar.
 
-El usuario autorizó Fase 1 después de revisar la planificación. Se implementó la aplicación local con persistencia real MySQL. Git tiene en la rama master el commit local de la Fase 1 (79515d6) y el de identidad y ajustes previos a Fase 2 (fa07a9b), sin remoto. No se publicó ni desplegó el producto.
+El usuario autorizó Fase 1 después de revisar la planificación. Se implementó la aplicación local con persistencia real MySQL. El código está en la rama master del repositorio privado de GitHub [Nexora-SaaS](https://github.com/yuliniri200712-bit/Nexora-SaaS). El producto no se ha desplegado ni está disponible públicamente.
 
 ## Implementado
 
@@ -39,7 +39,7 @@ El usuario autorizó Fase 1 después de revisar la planificación. Se implement�
 | npm audit | 0 vulnerabilidades reportadas |
 | Base de desarrollo | Datos propios del usuario; las pruebas no escribieron en ella; fixtures únicamente en nexora_test |
 | Secretos y datos locales | .env, .data, node_modules y dist excluidos por Git; contenido del commit revisado sin valores de .env |
-| Git | Commits locales 79515d6 (Fase 1, 88 archivos) y fa07a9b (identidad y ajustes, 21 archivos) en master; sin remoto |
+| Git | Historial en master publicado en GitHub (repositorio privado); revisado sin valores de .env, claves ni archivos locales |
 
 Revalidación del 2026-11-09 en este equipo, con Node 24.19.0: TypeScript en los tres workspaces, ESLint, Prettier, 6 unitarias, build web con salida temporal fuera del repositorio, npm audit con 0 vulnerabilidades, migraciones sin pendientes en nexora_test, 18 de integración contra MySQL real y E2E en Chrome aprobados. Ese día API y shared se comprobaron solo con tipos; su build corresponde a la evidencia del 2026-11-08. No se repitió la comprobación de anchos responsive, y las capturas regeneradas por E2E no se revisaron visualmente.
 
@@ -49,7 +49,7 @@ Ajustes previos a Fase 2, 2026-11-09, commit fa07a9b: aceptar invitaciones usa e
 
 Logo vectorial y colores, 2026-11-09: SVG del logo y del símbolo reconstruidos sobre la lámina (coincidencia por superposición: 99,4 % símbolo, 98,1 % palabra). Todos los colores de styles.css y del gráfico del dashboard están en tokens; quedan 0 literales. Con los mismos datos, 18 capturas antes y después mantienen su tamaño y cambian como máximo un 1,2 % de los píxeles. Los textos por debajo de WCAG AA en esas pantallas pasaron de 14 a 0, sin evaluar texto sobre degradados. TypeScript, ESLint, Prettier, 6 unitarias, 21 de integración, E2E, build web y npm audit aprobados, sin desbordamiento en las siete rutas del panel.
 
-Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png y test-results/dashboard-mobile.png, revisadas visualmente. La verificación no equivale a una auditoría de producción, carga o accesibilidad exhaustiva. CI está definido pero no se ejecutó en GitHub.
+Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png y test-results/dashboard-mobile.png, revisadas visualmente. La verificación no equivale a una auditoría de producción, carga o accesibilidad exhaustiva. El workflow CI se activa al subir a GitHub; su resultado aún no se ha verificado.
 
 ## Límites y pendientes
 

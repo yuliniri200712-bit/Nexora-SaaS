@@ -58,7 +58,7 @@ Integración cubre: totales y reparto, idempotencia secuencial y simultánea, ú
 
 E2E cubre: cliente y dirección, pedido a domicilio, confirmación con reserva visible en inventario, completado, venta directa con descuento, métricas en dashboard y reportes, y vista móvil.
 
-No se afirma: prueba de carga, auditoría de penetración, accesibilidad exhaustiva ni ejecución en GitHub CI.
+No se afirma: prueba de carga, auditoría de penetración, accesibilidad exhaustiva ni un resultado verificado de GitHub CI.
 
 ## Operación
 
