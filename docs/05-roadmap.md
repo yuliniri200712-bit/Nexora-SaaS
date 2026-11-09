@@ -1,6 +1,6 @@
 # Roadmap y aceptación
 
-Fase 1 autorizada e implementada para validación local. Fase 2 no autorizada. Cada fase termina con estado actualizado, evidencia y limitaciones. No se estiman fechas sin conocer capacidad, alcance comercial y dependencias.
+Fases 1 y 2 autorizadas e implementadas para validación local. Fase 3 no autorizada. Cada fase termina con estado actualizado, evidencia y limitaciones. No se estiman fechas sin conocer capacidad, alcance comercial y dependencias.
 
 ## Fase 0 — Inspección y planificación
 
@@ -30,6 +30,8 @@ Orden recomendado de incrementos, cada uno con revisión y estado actualizado:
 Aceptación: login/logout/renovación funcionan; propietario crea empleado; usuario sin permiso es rechazado; CRUD de producto y stock persiste; intentos cruzados fallan en API y relaciones DB; balances y movimientos coinciden; lint, typecheck, unitarias, integración, build y E2E principales pasan. Capturas y pruebas manuales documentadas. Sin WhatsApp, ventas, Flutter o cobros implementados anticipadamente.
 
 ## Fase 2 — Ventas, clientes y pedidos
+
+Estado: implementada y verificada en entorno local. [Informe, decisiones pendientes y límites](10-phase2.md).
 
 Tareas: clientes/direcciones; precios snapshot; líneas, descuentos, domicilio y totales; venta directa; borrador/confirmación/cancelación/completado; reservas y consumo; historial; filtros; reportes y exportación segura. Incorporar métricas reales de ventas al dashboard.
 

@@ -18,6 +18,18 @@ const named = {
   ProductStatus: z
     .object({ active: z.boolean(), version: z.number().int().nonnegative() })
     .strict(),
+  Customer: shared.customerSchema,
+  CustomerUpdate: z
+    .object({ version: z.number().int().nonnegative(), data: shared.customerSchema })
+    .strict(),
+  Address: shared.addressSchema,
+  Order: shared.orderSchema,
+  OrderUpdate: z
+    .object({ version: z.number().int().nonnegative(), order: shared.orderSchema })
+    .strict(),
+  Sale: shared.saleSchema,
+  OrderVersion: shared.orderVersionSchema,
+  CancelOrder: shared.cancelOrderSchema,
 };
 const schemas = Object.fromEntries(
   Object.entries(named).map(([key, schema]) => [key, z.toJSONSchema(schema, { io: 'input' })]),
@@ -131,6 +143,46 @@ const operations = [
   ['delete', '/invitations/{id}', 'Revocar invitación pendiente', null, 'employees:manage'],
   ['get', '/settings', 'Consultar configuración del comercio', null, 'settings:manage'],
   ['put', '/settings', 'Actualizar nombre del comercio', 'Settings', 'settings:manage'],
+  ['get', '/customers', 'Listar clientes paginados', null, 'customers:read'],
+  ['post', '/customers', 'Crear cliente', 'Customer', 'customers:write'],
+  ['get', '/customers/{id}', 'Consultar cliente, direcciones y compras', null, 'customers:read'],
+  [
+    'put',
+    '/customers/{id}',
+    'Editar cliente con control de versión',
+    'CustomerUpdate',
+    'customers:write',
+  ],
+  ['post', '/customers/{id}/addresses', 'Agregar dirección', 'Address', 'customers:write'],
+  [
+    'delete',
+    '/customers/{id}/addresses/{addressId}',
+    'Eliminar dirección',
+    null,
+    'customers:write',
+  ],
+  ['get', '/orders', 'Listar pedidos con filtros', null, 'orders:read'],
+  ['post', '/orders', 'Crear borrador sin comprometer stock', 'Order', 'orders:write'],
+  ['get', '/orders/{id}', 'Consultar pedido, líneas e historial', null, 'orders:read'],
+  ['put', '/orders/{id}', 'Editar borrador con control de versión', 'OrderUpdate', 'orders:write'],
+  [
+    'post',
+    '/orders/{id}/confirm',
+    'Confirmar y reservar existencias',
+    'OrderVersion',
+    'orders:write',
+  ],
+  [
+    'post',
+    '/orders/{id}/complete',
+    'Completar y consumir la reserva',
+    'OrderVersion',
+    'orders:write',
+  ],
+  ['post', '/orders/{id}/cancel', 'Cancelar y liberar la reserva', 'CancelOrder', 'orders:write'],
+  ['post', '/sales', 'Registrar venta directa y descontar stock', 'Sale', 'orders:write'],
+  ['get', '/reports/sales', 'Resumen de ventas completadas del periodo', null, 'reports:read'],
+  ['get', '/reports/sales.csv', 'Exportar ventas; máximo 10000 registros', null, 'reports:read'],
 ];
 const paths = {};
 for (const [method, path, summary, body, permission] of operations) {
@@ -149,6 +201,13 @@ for (const [method, path, summary, body, permission] of operations) {
       required: true,
       schema: { type: 'string', format: 'uuid' },
     });
+  if (path.includes('{addressId}'))
+    parameters.push({
+      name: 'addressId',
+      in: 'path',
+      required: true,
+      schema: { type: 'string', format: 'uuid' },
+    });
   if (mutation)
     parameters.push({
       name: 'Origin',
@@ -157,6 +216,25 @@ for (const [method, path, summary, body, permission] of operations) {
       schema: { type: 'string', format: 'uri' },
       description: 'Debe coincidir con APP_ORIGIN.',
     });
+  if (method === 'get' && ['/customers', '/orders'].includes(path))
+    parameters.push(
+      {
+        name: 'page',
+        in: 'query',
+        schema: { type: 'integer', minimum: 1, maximum: 100000, default: 1 },
+      },
+      { name: 'search', in: 'query', schema: { type: 'string', maxLength: 100 } },
+    );
+  if (method === 'get' && path === '/orders')
+    parameters.push(
+      {
+        name: 'status',
+        in: 'query',
+        schema: { type: 'string', enum: ['DRAFT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'] },
+      },
+      { name: 'channel', in: 'query', schema: { type: 'string', enum: ['COUNTER', 'DELIVERY'] } },
+      { name: 'customerId', in: 'query', schema: { type: 'string', format: 'uuid' } },
+    );
   if (method === 'get' && ['/products', '/inventory/movements'].includes(path))
     parameters.push({
       name: 'page',
@@ -175,18 +253,25 @@ for (const [method, path, summary, body, permission] of operations) {
     );
   if (
     method === 'get' &&
-    ['/reports/dashboard', '/reports/movements.csv', '/inventory/movements'].includes(path)
+    [
+      '/reports/dashboard',
+      '/reports/movements.csv',
+      '/reports/sales',
+      '/reports/sales.csv',
+      '/inventory/movements',
+      '/orders',
+    ].includes(path)
   )
     for (const name of ['from', 'to'])
       parameters.push({
         name,
         in: 'query',
-        required: path !== '/inventory/movements',
+        required: !['/inventory/movements', '/orders'].includes(path),
         schema: { type: 'string', format: 'date' },
         description:
           'Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos.',
       });
-  if (method === 'post' && path === '/inventory/movements')
+  if (method === 'post' && ['/inventory/movements', '/orders', '/sales'].includes(path))
     parameters.push({
       name: 'Idempotency-Key',
       in: 'header',
@@ -209,6 +294,10 @@ for (const [method, path, summary, body, permission] of operations) {
       '/inventory/movements',
       '/employees/invite',
       '/products/{id}/image',
+      '/customers',
+      '/customers/{id}/addresses',
+      '/orders',
+      '/sales',
     ].includes(path);
   const media = path.endsWith('.csv')
     ? 'text/csv'
@@ -250,10 +339,10 @@ for (const [method, path, summary, body, permission] of operations) {
 const spec = {
   openapi: '3.1.0',
   info: {
-    title: 'NEXORA — API Fase 1',
-    version: '0.1.0',
+    title: 'NEXORA — API',
+    version: '0.2.0',
     description:
-      'Contrato de solicitudes y seguridad. Respuestas de dominio tipadas en @nexora/shared. Cookies locales sin prefijo; producción usa __Host-nexora_session y __Host-nexora_csrf con Secure. No incluye fases posteriores.',
+      'Contrato de solicitudes y seguridad de las Fases 1 y 2. Respuestas de dominio tipadas en @nexora/shared. Cookies locales sin prefijo; producción usa __Host-nexora_session y __Host-nexora_csrf con Secure. No incluye fases posteriores.',
   },
   servers: [{ url: '/api/v1' }],
   components: {
@@ -266,5 +355,5 @@ const spec = {
   },
   paths,
 };
-writeFileSync('docs/openapi.phase1.json', JSON.stringify(spec, null, 2) + '\n');
+writeFileSync('docs/openapi.json', JSON.stringify(spec, null, 2) + '\n');
 console.log(`${operations.length} operaciones documentadas.`);

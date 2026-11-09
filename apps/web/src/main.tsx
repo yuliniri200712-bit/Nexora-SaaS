@@ -15,6 +15,8 @@ import { InventoryPage } from './features/inventory/InventoryPage';
 import { EmployeesPage } from './features/employees/EmployeesPage';
 import { ReportsPage } from './features/reports/ReportsPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { OrdersPage } from './features/orders/OrdersPage';
+import { CustomersPage } from './features/customers/CustomersPage';
 import { Empty, Loading, ErrorBox } from './components/ui';
 import './styles.css';
 const DashboardPage = lazy(() =>
@@ -96,6 +98,30 @@ function App() {
                   element={
                     <Guard permission="inventory:read">
                       <InventoryPage />
+                    </Guard>
+                  }
+                />
+                <Route
+                  path="/ventas"
+                  element={
+                    <Guard permission="orders:read">
+                      <OrdersPage key="sales" mode="sales" />
+                    </Guard>
+                  }
+                />
+                <Route
+                  path="/pedidos"
+                  element={
+                    <Guard permission="orders:read">
+                      <OrdersPage key="orders" mode="orders" />
+                    </Guard>
+                  }
+                />
+                <Route
+                  path="/clientes"
+                  element={
+                    <Guard permission="customers:read">
+                      <CustomersPage />
                     </Guard>
                   }
                 />

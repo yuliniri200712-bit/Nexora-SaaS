@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Package } from 'lucide-react';
 import type { ProductDto, MovementDto } from '@nexora/shared';
-import { can, movementSchema } from '@nexora/shared';
+import { can, movementSchema, movementTypeLabels } from '@nexora/shared';
 import { api, json, dateTime } from '../../lib/api';
 import { useSession } from '../../app/session';
 import { PageHeading, ErrorBox, Empty, Loading, Modal, Pagination } from '../../components/ui';
@@ -188,13 +188,21 @@ export function InventoryPage() {
                       </td>
                       <td>
                         <span className="badge neutral">
-                          {m.type === 'IN' ? 'Entrada' : m.type === 'OUT' ? 'Salida' : 'Ajuste'}
+                          {movementTypeLabels[m.type] ?? m.type}
                         </span>
                       </td>
-                      <td className={m.quantity > 0 ? 'positive' : 'negative'}>
-                        {m.quantity > 0 ? '+' : ''}
-                        {m.quantity}
-                      </td>
+                      {m.quantity === 0 ? (
+                        <td>
+                          {m.reservedDelta > 0 ? '+' : ''}
+                          {m.reservedDelta}
+                          <small>reservadas</small>
+                        </td>
+                      ) : (
+                        <td className={m.quantity > 0 ? 'positive' : 'negative'}>
+                          {m.quantity > 0 ? '+' : ''}
+                          {m.quantity}
+                        </td>
+                      )}
                       <td>
                         {m.before} → {m.after}
                       </td>

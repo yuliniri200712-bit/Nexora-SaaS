@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "NEXORA — API Fase 1",
-    "version": "0.1.0",
-    "description": "Contrato de solicitudes y seguridad. Respuestas de dominio tipadas en @nexora/shared. Cookies locales sin prefijo; producción usa __Host-nexora_session y __Host-nexora_csrf con Secure. No incluye fases posteriores."
+    "title": "NEXORA — API",
+    "version": "0.2.0",
+    "description": "Contrato de solicitudes y seguridad de las Fases 1 y 2. Respuestas de dominio tipadas en @nexora/shared. Cookies locales sin prefijo; producción usa __Host-nexora_session y __Host-nexora_csrf con Secure. No incluye fases posteriores."
   },
   "servers": [
     {
@@ -434,6 +434,427 @@
         "required": [
           "active",
           "version"
+        ],
+        "additionalProperties": false
+      },
+      "Customer": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 191,
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "email",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerUpdate": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 120
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 191,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "name",
+              "phone",
+              "email",
+              "notes"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "version",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "Address": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "line": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "label",
+          "line",
+          "city",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "Order": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "COUNTER",
+              "DELIVERY"
+            ]
+          },
+          "customerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "addressId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "variantId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000
+                },
+                "discount": {
+                  "type": "string",
+                  "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+                }
+              },
+              "required": [
+                "variantId",
+                "quantity",
+                "discount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "discount": {
+            "type": "string",
+            "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+          },
+          "deliveryFee": {
+            "type": "string",
+            "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "channel",
+          "customerId",
+          "addressId",
+          "lines",
+          "discount",
+          "deliveryFee",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "OrderUpdate": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "order": {
+            "type": "object",
+            "properties": {
+              "channel": {
+                "type": "string",
+                "enum": [
+                  "COUNTER",
+                  "DELIVERY"
+                ]
+              },
+              "customerId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "addressId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "lines": {
+                "minItems": 1,
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "variantId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100000
+                    },
+                    "discount": {
+                      "type": "string",
+                      "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+                    }
+                  },
+                  "required": [
+                    "variantId",
+                    "quantity",
+                    "discount"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "discount": {
+                "type": "string",
+                "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+              },
+              "deliveryFee": {
+                "type": "string",
+                "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "channel",
+              "customerId",
+              "addressId",
+              "lines",
+              "discount",
+              "deliveryFee",
+              "notes"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "version",
+          "order"
+        ],
+        "additionalProperties": false
+      },
+      "Sale": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "variantId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000
+                },
+                "discount": {
+                  "type": "string",
+                  "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+                }
+              },
+              "required": [
+                "variantId",
+                "quantity",
+                "discount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "discount": {
+            "type": "string",
+            "pattern": "^\\d{1,12}(\\.\\d{1,2})?$"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "customerId",
+          "lines",
+          "discount",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "OrderVersion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "CancelOrder": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "version",
+          "reason"
         ],
         "additionalProperties": false
       },
@@ -2127,6 +2548,978 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Settings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "summary": "Listar clientes paginados",
+        "description": "Ámbito: customers:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear cliente",
+        "description": "Ámbito: customers:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "summary": "Consultar cliente, direcciones y compras",
+        "description": "Ámbito: customers:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Editar cliente con control de versión",
+        "description": "Ámbito: customers:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/addresses": {
+      "post": {
+        "summary": "Agregar dirección",
+        "description": "Ámbito: customers:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Address"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/addresses/{addressId}": {
+      "delete": {
+        "summary": "Eliminar dirección",
+        "description": "Ámbito: customers:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "addressId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Listar pedidos con filtros",
+        "description": "Ámbito: orders:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "CONFIRMED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COUNTER",
+                "DELIVERY"
+              ]
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear borrador sin comprometer stock",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "pattern": "^[a-zA-Z0-9-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "summary": "Consultar pedido, líneas e historial",
+        "description": "Ámbito: orders:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Editar borrador con control de versión",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/confirm": {
+      "post": {
+        "summary": "Confirmar y reservar existencias",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderVersion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/complete": {
+      "post": {
+        "summary": "Completar y consumir la reserva",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderVersion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/cancel": {
+      "post": {
+        "summary": "Cancelar y liberar la reserva",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrder"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sales": {
+      "post": {
+        "summary": "Registrar venta directa y descontar stock",
+        "description": "Ámbito: orders:write. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": [],
+            "CsrfHeader": [],
+            "CsrfCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Debe coincidir con APP_ORIGIN."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 100,
+              "pattern": "^[a-zA-Z0-9-]+$"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Sale"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/sales": {
+      "get": {
+        "summary": "Resumen de ventas completadas del periodo",
+        "description": "Ámbito: reports:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/sales.csv": {
+      "get": {
+        "summary": "Exportar ventas; máximo 10000 registros",
+        "description": "Ámbito: reports:read. El tenant se obtiene del servidor y nunca se acepta en el cuerpo.",
+        "security": [
+          {
+            "Session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Días de Colombia, ambos límites inclusivos. Si se filtra historial, enviar ambos."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada. DTO de respuesta tipado en packages/shared/src/index.ts; dinero como string decimal y fechas ISO UTC.",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error de validación (422), sesión (401), permiso/CSRF (403), recurso (404), conflicto (409), frecuencia (429) o servicio (503/500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }

@@ -84,6 +84,10 @@ const errorHandler: ErrorRequestHandler = (error: unknown, req, res, _next) => {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     const unavailable = ['P1001', 'P1002', 'P1008', 'P1017', 'P2024', 'P2028'].includes(error.code);
     const status = unavailable ? 503 : error.code === 'P2025' ? 404 : 409;
+    if (unavailable || !['P2002', 'P2003'].includes(error.code))
+      console.error(
+        JSON.stringify({ event: 'request.data_error', requestId: req.requestId, code: error.code }),
+      );
     res.status(status).json({
       code: unavailable ? 'SERVICE_UNAVAILABLE' : 'DATA_CONFLICT',
       message: unavailable

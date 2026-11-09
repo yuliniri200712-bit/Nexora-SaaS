@@ -15,6 +15,24 @@ enum MovementType {
   IN
   OUT
   ADJUSTMENT
+  RESERVE
+  RELEASE
+  SALE
+}
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+enum OrderChannel {
+  COUNTER
+  DELIVERY
+}
+enum ReservationStatus {
+  ACTIVE
+  CONSUMED
+  RELEASED
 }
 model User {
   id String @id @default(uuid()) @db.Char(36)
@@ -32,12 +50,15 @@ model Tenant {
   active Boolean @default(true)
   timezone String @default("America/Bogota") @db.VarChar(64)
   currency String @default("COP") @db.Char(3)
+  lastOrderNumber Int @default(0)
   createdAt DateTime @default(now())
   memberships Membership[]
   categories Category[]
   products Product[]
   invitations Invitation[]
   locations Location[]
+  customers Customer[]
+  orders SalesOrder[]
 }
 model Membership {
   id String @id @default(uuid()) @db.Char(36)
@@ -51,6 +72,8 @@ model Membership {
   sessions Session[]
   movements StockMovement[]
   audits AuditEvent[]
+  orders SalesOrder[]
+  orderEvents OrderEvent[]
   @@unique([tenantId,id])
   @@unique([tenantId,userId])
 }
@@ -123,6 +146,8 @@ model ProductVariant {
   product Product @relation(fields:[tenantId,productId],references:[tenantId,id])
   balance InventoryBalance?
   movements StockMovement[]
+  orderLines OrderLine[]
+  reservations StockReservation[]
   @@unique([tenantId,id])
   @@unique([tenantId,sku])
 }
@@ -154,6 +179,8 @@ model StockMovement {
   actorId String @db.Char(36)
   type MovementType
   quantity Int
+  reservedDelta Int @default(0)
+  orderId String? @db.Char(36)
   reason String @db.VarChar(500)
   before Int
   after Int
@@ -162,8 +189,124 @@ model StockMovement {
   createdAt DateTime @default(now())
   variant ProductVariant @relation(fields:[tenantId,variantId],references:[tenantId,id])
   actor Membership @relation(fields:[tenantId,actorId],references:[tenantId,id])
+  order SalesOrder? @relation(fields:[tenantId,orderId],references:[tenantId,id],onDelete:Restrict,onUpdate:Restrict)
   @@unique([tenantId,actorId,idempotencyKey])
   @@index([tenantId,createdAt,id])
+}
+model Customer {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  name String @db.VarChar(120)
+  phone String? @db.VarChar(20)
+  email String? @db.VarChar(191)
+  notes String @default("") @db.VarChar(500)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  addresses CustomerAddress[]
+  orders SalesOrder[]
+  @@unique([tenantId,id])
+  @@unique([tenantId,phone])
+  @@index([tenantId,name])
+}
+model CustomerAddress {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  customerId String @db.Char(36)
+  label String @db.VarChar(50)
+  line String @db.VarChar(200)
+  city String @db.VarChar(100)
+  notes String @default("") @db.VarChar(300)
+  createdAt DateTime @default(now())
+  customer Customer @relation(fields:[tenantId,customerId],references:[tenantId,id])
+  @@unique([tenantId,id])
+  @@index([tenantId,customerId])
+}
+model SalesOrder {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  number Int
+  customerId String? @db.Char(36)
+  channel OrderChannel
+  status OrderStatus
+  customerName String @default("") @db.VarChar(120)
+  customerPhone String? @db.VarChar(20)
+  deliveryAddress String? @db.VarChar(700)
+  subtotal Decimal @db.Decimal(18,2)
+  orderDiscount Decimal @db.Decimal(18,2)
+  discountTotal Decimal @db.Decimal(18,2)
+  deliveryFee Decimal @db.Decimal(18,2)
+  total Decimal @db.Decimal(18,2)
+  notes String @default("") @db.VarChar(500)
+  version Int @default(0)
+  createdById String @db.Char(36)
+  idempotencyKey String @db.VarChar(100)
+  requestHash String @db.Char(64)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  confirmedAt DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+  tenant Tenant @relation(fields:[tenantId],references:[id])
+  customer Customer? @relation(fields:[tenantId,customerId],references:[tenantId,id],onDelete:Restrict,onUpdate:Restrict)
+  createdBy Membership @relation(fields:[tenantId,createdById],references:[tenantId,id])
+  lines OrderLine[]
+  events OrderEvent[]
+  movements StockMovement[]
+  @@unique([tenantId,id])
+  @@unique([tenantId,number])
+  @@unique([tenantId,createdById,idempotencyKey])
+  @@index([tenantId,createdAt,id])
+  @@index([tenantId,status,createdAt])
+  @@index([tenantId,completedAt])
+  @@index([tenantId,customerId,createdAt])
+}
+model OrderLine {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  orderId String @db.Char(36)
+  variantId String @db.Char(36)
+  productName String @db.VarChar(150)
+  variantName String @db.VarChar(100)
+  sku String @db.VarChar(64)
+  unitPrice Decimal @db.Decimal(18,2)
+  quantity Int
+  discount Decimal @db.Decimal(18,2)
+  orderDiscountShare Decimal @db.Decimal(18,2)
+  lineTotal Decimal @db.Decimal(18,2)
+  order SalesOrder @relation(fields:[tenantId,orderId],references:[tenantId,id])
+  variant ProductVariant @relation(fields:[tenantId,variantId],references:[tenantId,id])
+  reservation StockReservation?
+  @@unique([tenantId,id])
+  @@unique([tenantId,orderId,variantId])
+}
+model StockReservation {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  lineId String @db.Char(36)
+  variantId String @db.Char(36)
+  quantity Int
+  status ReservationStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  line OrderLine @relation(fields:[tenantId,lineId],references:[tenantId,id])
+  variant ProductVariant @relation(fields:[tenantId,variantId],references:[tenantId,id])
+  @@unique([tenantId,id])
+  @@unique([tenantId,lineId])
+}
+model OrderEvent {
+  id String @id @default(uuid()) @db.Char(36)
+  tenantId String @db.Char(36)
+  orderId String @db.Char(36)
+  actorId String @db.Char(36)
+  fromStatus OrderStatus?
+  toStatus OrderStatus
+  reason String @default("") @db.VarChar(500)
+  createdAt DateTime @default(now())
+  order SalesOrder @relation(fields:[tenantId,orderId],references:[tenantId,id])
+  actor Membership @relation(fields:[tenantId,actorId],references:[tenantId,id])
+  @@index([tenantId,orderId,createdAt])
 }
 model ProductImage {
   id String @id @default(uuid()) @db.Char(36)

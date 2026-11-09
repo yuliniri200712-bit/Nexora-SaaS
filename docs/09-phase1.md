@@ -76,7 +76,7 @@ Sesión: 30 minutos de inactividad y 12 horas absolutas. La renovación no extie
 
 Reportes: fechas de Colombia, máximo un año de movimientos; los saldos por categoría son actuales, no cortes históricos. CSV hasta 10.000 registros, con error explícito para un rango mayor.
 
-[OpenAPI](openapi.phase1.json) describe solicitudes y seguridad de 32 operaciones. Los DTO de respuesta están en packages/shared/src/index.ts. Regenerar con npm run docs:api al cambiar esquemas. Reglas como SKU repetido dentro de una solicitud se verifican en servidor aunque JSON Schema no las exprese.
+[OpenAPI](openapi.json) describe solicitudes y seguridad de las operaciones vigentes; en Fase 1 eran 32. Los DTO de respuesta están en packages/shared/src/index.ts. Regenerar con npm run docs:api al cambiar esquemas. Reglas como SKU repetido dentro de una solicitud se verifican en servidor aunque JSON Schema no las exprese.
 
 Pendientes externos: correo verificado, almacenamiento cloud y limpieza, archivo original de marca, hosting y operación/recuperación. Roles personalizados, múltiples almacenes y cantidades fraccionarias no se presentan como disponibles. Ventas, pedidos, Meta, Flutter, seguimiento y planes permanecen fuera de Fase 1.
 

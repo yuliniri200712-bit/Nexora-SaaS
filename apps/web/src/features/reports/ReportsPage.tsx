@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Download, ArrowDownToLine, ArrowUpFromLine, ClipboardList } from 'lucide-react';
-import type { DashboardDto } from '@nexora/shared';
-import { api, daysAgo, today, download, number } from '../../lib/api';
+import {
+  Boxes,
+  Download,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ClipboardList,
+  Receipt,
+  ShoppingBag,
+  Wallet,
+} from 'lucide-react';
+import type { DashboardDto, SalesReportDto } from '@nexora/shared';
+import { api, daysAgo, today, download, number, money } from '../../lib/api';
 import { useSession } from '../../app/session';
 import { PageHeading, ErrorBox, Loading, Empty } from '../../components/ui';
 export function ReportsPage() {
@@ -16,13 +25,19 @@ export function ReportsPage() {
     queryFn: () => api<DashboardDto>(`/reports/dashboard?from=${from}&to=${to}`),
     enabled: Boolean(from && to),
   });
-  async function save(kind: 'inventory' | 'movements') {
+  const sales = useQuery({
+    queryKey: ['sales-report', user?.tenant.id, from, to],
+    queryFn: () => api<SalesReportDto>(`/reports/sales?from=${from}&to=${to}`),
+    enabled: Boolean(from && to),
+  });
+  async function save(kind: 'inventory' | 'movements' | 'sales') {
     setBusy(true);
     setError(null);
     try {
+      const names = { inventory: 'inventario', movements: 'movimientos', sales: 'ventas' };
       await download(
-        `/reports/${kind}.csv${kind === 'movements' ? `?from=${from}&to=${to}` : ''}`,
-        `nexora-${kind === 'inventory' ? 'inventario' : 'movimientos'}.csv`,
+        `/reports/${kind}.csv${kind === 'inventory' ? '' : `?from=${from}&to=${to}`}`,
+        `nexora-${names[kind]}.csv`,
       );
     } catch (e) {
       setError(e);
@@ -35,7 +50,7 @@ export function ReportsPage() {
       <PageHeading
         eyebrow="DECISIONES CON INFORMACIÓN"
         title="Reportes"
-        description="Conoce cómo se mueve tu inventario y lleva los datos contigo."
+        description="Conoce cómo se mueven tus ventas e inventario y lleva los datos contigo."
       />
       <section className="panel">
         <div className="toolbar report-toolbar">
@@ -75,12 +90,142 @@ export function ReportsPage() {
           </label>
         </div>
       </section>
-      <ErrorBox error={error || query.error} />
-      {query.isPending ? (
+      <ErrorBox error={error || query.error || sales.error} />
+      {query.isPending || sales.isPending ? (
         <Loading />
       ) : (
-        query.data && (
+        query.data &&
+        sales.data && (
           <>
+            <div className="metric-grid">
+              <article className="metric-card">
+                <div>
+                  <span>Ingresos del periodo</span>
+                  <Wallet size={20} />
+                </div>
+                <strong className="money">{money(sales.data.revenue)}</strong>
+                <small>Ventas completadas, con domicilio</small>
+              </article>
+              <article className="metric-card">
+                <div>
+                  <span>Ventas completadas</span>
+                  <ShoppingBag size={20} />
+                </div>
+                <strong>{number(sales.data.count)}</strong>
+                <small>{money(sales.data.discounts)} en descuentos</small>
+              </article>
+              <article className="metric-card">
+                <div>
+                  <span>Unidades vendidas</span>
+                  <Boxes size={20} />
+                </div>
+                <strong>{number(sales.data.units)}</strong>
+                <small>Productos entregados al cliente</small>
+              </article>
+              <article className="metric-card">
+                <div>
+                  <span>Ticket promedio</span>
+                  <Receipt size={20} />
+                </div>
+                <strong className="money">{money(sales.data.averageTicket)}</strong>
+                <small>Por venta completada</small>
+              </article>
+            </div>
+            <section className="panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Ventas por día</h2>
+                  <p>Fechas en hora de Colombia · ventas completadas</p>
+                </div>
+                <button
+                  className="button secondary"
+                  disabled={busy}
+                  onClick={() => void save('sales')}
+                >
+                  <Download size={16} />
+                  Exportar ventas
+                </button>
+              </div>
+              {sales.data.daily.length ? (
+                <div
+                  className="table-scroll"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Tabla con desplazamiento horizontal"
+                >
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Ventas</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sales.data.daily.map((d) => (
+                        <tr key={d.date}>
+                          <td>{d.date}</td>
+                          <td>{d.count}</td>
+                          <td>{money(d.total)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <Empty
+                  title="Un periodo sin ventas"
+                  description="Elige otras fechas o registra una venta."
+                />
+              )}
+            </section>
+            <section className="panel spaced-panel spaced-bottom">
+              <div className="panel-heading">
+                <div>
+                  <h2>Productos más vendidos</h2>
+                  <p>Por unidades, con ingresos netos de descuentos</p>
+                </div>
+              </div>
+              {sales.data.topProducts.length ? (
+                <div
+                  className="table-scroll"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Tabla con desplazamiento horizontal"
+                >
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>SKU</th>
+                        <th>Unidades</th>
+                        <th>Ingresos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sales.data.topProducts.map((p) => (
+                        <tr key={p.sku}>
+                          <td>
+                            {p.productName}
+                            <small>{p.variantName}</small>
+                          </td>
+                          <td>
+                            <code>{p.sku}</code>
+                          </td>
+                          <td>{number(p.units)}</td>
+                          <td>{money(p.revenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <Empty
+                  title="Sin productos vendidos"
+                  description="Aparecerán cuando completes ventas en este periodo."
+                />
+              )}
+            </section>
             <div className="metric-grid three">
               <article className="metric-card">
                 <div>

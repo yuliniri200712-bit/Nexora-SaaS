@@ -11,10 +11,15 @@ import {
   ArrowUpLeft,
   ArrowRight,
   CalendarDays,
+  ShoppingBag,
+  Wallet,
+  ClipboardList,
 } from 'lucide-react';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -22,10 +27,11 @@ import {
   CartesianGrid,
 } from 'recharts';
 import type { DashboardDto } from '@nexora/shared';
-import { can } from '@nexora/shared';
-import { api, today, daysAgo, number, dateTime } from '../../lib/api';
+import { can, movementTypeLabels } from '@nexora/shared';
+import { api, today, daysAgo, number, dateTime, money } from '../../lib/api';
 import { useSession } from '../../app/session';
 import { PageHeading, Loading, ErrorBox, Empty } from '../../components/ui';
+const compactMoney = new Intl.NumberFormat('es-CO', { notation: 'compact' });
 export function DashboardPage() {
   const { user } = useSession();
   const { data, error, isPending, refetch } = useQuery({
@@ -73,6 +79,11 @@ export function DashboardPage() {
       tone: 'amber',
     },
   ];
+  const salesDays = Array.from({ length: 7 }, (_, i) => {
+    const date = daysAgo(6 - i),
+      day = data.sales.daily.find((d) => d.date === date);
+    return { date, total: Number(day?.total ?? 0), count: day?.count ?? 0 };
+  });
   return (
     <>
       <PageHeading
@@ -114,6 +125,42 @@ export function DashboardPage() {
           <span className="graphic-spark" />
         </div>
       </section>
+      <div className="metric-grid three">
+        <article className="metric-card">
+          <div>
+            <span>Ventas de hoy</span>
+            <span className="metric-icon green">
+              <ShoppingBag size={20} />
+            </span>
+          </div>
+          <strong className="money">{money(data.sales.todayTotal)}</strong>
+          <small>
+            {data.sales.todayCount === 1
+              ? '1 venta completada hoy'
+              : `${number(data.sales.todayCount)} ventas completadas hoy`}
+          </small>
+        </article>
+        <article className="metric-card">
+          <div>
+            <span>Ingresos del mes</span>
+            <span className="metric-icon teal">
+              <Wallet size={20} />
+            </span>
+          </div>
+          <strong className="money">{money(data.sales.monthTotal)}</strong>
+          <small>Ventas completadas desde el día 1</small>
+        </article>
+        <article className="metric-card">
+          <div>
+            <span>Pedidos por completar</span>
+            <span className="metric-icon amber">
+              <ClipboardList size={20} />
+            </span>
+          </div>
+          <strong>{number(data.sales.pendingOrders)}</strong>
+          <small>Confirmados, con existencias reservadas</small>
+        </article>
+      </div>
       <div className="metric-grid">
         {metrics.map(({ label, value, note, icon: Icon, tone }) => (
           <article className="metric-card" key={label}>
@@ -286,6 +333,140 @@ export function DashboardPage() {
           </Link>
         </section>
       </div>
+      <div className="dashboard-grid">
+        <section className="panel chart-panel">
+          <div className="panel-heading">
+            <div>
+              <h2>El ritmo de tus ventas</h2>
+              <p>Ventas completadas · últimos 7 días</p>
+            </div>
+            <span className="subtle-chip">COP</span>
+          </div>
+          {data.sales.daily.length ? (
+            <>
+              <div
+                className="chart-container"
+                role="img"
+                aria-label="Gráfico de ventas completadas por día; detalle disponible en la tabla inferior."
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={salesDays} margin={{ top: 12, right: 12, left: -8, bottom: 0 }}>
+                    <CartesianGrid
+                      strokeDasharray="3 5"
+                      vertical={false}
+                      stroke="var(--border-soft)"
+                    />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(v) => String(v).slice(8)}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => compactMoney.format(Number(v))}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'var(--hover-overlay)' }}
+                      formatter={(value) => [money(Number(value)), 'Ventas']}
+                    />
+                    <Bar
+                      dataKey="total"
+                      name="Ventas"
+                      fill="var(--chart-1)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={36}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <details className="chart-data">
+                <summary>Ver datos del gráfico</summary>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Día</th>
+                      <th>Ventas</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.sales.daily.map((d) => (
+                      <tr key={d.date}>
+                        <td>{d.date}</td>
+                        <td>{d.count}</td>
+                        <td>{money(d.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
+            </>
+          ) : (
+            <Empty
+              title="Tus ventas aparecerán aquí"
+              description="Registra una venta para ver cómo se mueve tu negocio día a día."
+              action={
+                <Link className="text-link" to="/ventas">
+                  Ir a Ventas <ArrowRight size={15} />
+                </Link>
+              }
+            />
+          )}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Lo que más se vende</h2>
+              <p>Ventas completadas · últimos 7 días</p>
+            </div>
+            <Link className="text-link" to="/ventas">
+              Ver ventas <ArrowUpRight size={16} />
+            </Link>
+          </div>
+          {data.sales.topProducts.length ? (
+            <div
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla con desplazamiento horizontal"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Unidades</th>
+                    <th>Ingresos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.sales.topProducts.map((p) => (
+                    <tr key={p.sku}>
+                      <td>
+                        <strong>{p.productName}</strong>
+                        <small>
+                          {p.variantName} · {p.sku}
+                        </small>
+                      </td>
+                      <td>{number(p.units)}</td>
+                      <td>{money(p.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty
+              title="Aún no hay ventas en este periodo"
+              description="Cuando completes tus primeras ventas, verás aquí lo que más sale."
+            />
+          )}
+        </section>
+      </div>
       <section className="panel">
         <div className="panel-heading">
           <div>
@@ -323,13 +504,21 @@ export function DashboardPage() {
                     <td>
                       <span className={`badge ${m.quantity > 0 ? 'success' : 'neutral'}`}>
                         {m.quantity > 0 ? <ArrowDownLeft size={13} /> : <ArrowUpLeft size={13} />}{' '}
-                        {m.type === 'ADJUSTMENT' ? 'Ajuste' : m.quantity > 0 ? 'Entrada' : 'Salida'}
+                        {movementTypeLabels[m.type] ?? m.type}
                       </span>
                     </td>
-                    <td className={m.quantity > 0 ? 'positive' : 'negative'}>
-                      {m.quantity > 0 ? '+' : ''}
-                      {m.quantity}
-                    </td>
+                    {m.quantity === 0 ? (
+                      <td>
+                        {m.reservedDelta > 0 ? '+' : ''}
+                        {m.reservedDelta}
+                        <small>reservadas</small>
+                      </td>
+                    ) : (
+                      <td className={m.quantity > 0 ? 'positive' : 'negative'}>
+                        {m.quantity > 0 ? '+' : ''}
+                        {m.quantity}
+                      </td>
+                    )}
                     <td>{m.actor.user.name}</td>
                     <td>{dateTime(m.createdAt)}</td>
                   </tr>

@@ -14,6 +14,9 @@ import {
   X,
   ChevronDown,
   ArrowUpRight,
+  ShoppingBag,
+  ClipboardList,
+  Contact,
 } from 'lucide-react';
 import { can, roleLabels } from '@nexora/shared';
 import type { Permission } from '@nexora/shared';
@@ -26,6 +29,9 @@ const links = [
   { to: '/productos', label: 'Productos', icon: Package, permission: 'catalog:read' },
   { to: '/inventario', label: 'Inventario', icon: ArrowLeftRight, permission: 'inventory:read' },
   { to: '/categorias', label: 'Categorías', icon: Tags, permission: 'catalog:read' },
+  { to: '/ventas', label: 'Ventas', icon: ShoppingBag, permission: 'orders:read' },
+  { to: '/pedidos', label: 'Pedidos', icon: ClipboardList, permission: 'orders:read' },
+  { to: '/clientes', label: 'Clientes', icon: Contact, permission: 'customers:read' },
   { to: '/reportes', label: 'Reportes', icon: ChartNoAxesCombined, permission: 'reports:read' },
   { to: '/equipo', label: 'Mi equipo', icon: Users, permission: 'employees:manage' },
   { to: '/configuracion', label: 'Configuración', icon: Settings, permission: 'settings:manage' },

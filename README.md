@@ -2,9 +2,9 @@
 
 **Tu negocio. Todo conectado.**
 
-Aplicación local de Fase 1 para comercios, productos e inventario con persistencia MySQL. Incluye cuentas, sesiones, roles, aislamiento entre comercios, categorías, variantes/SKU, imágenes privadas, movimientos de stock, empleados, dashboard y reportes CSV.
+Aplicación local para comercios, con las Fases 1 y 2 implementadas y persistencia MySQL. Incluye cuentas, sesiones, roles, aislamiento entre comercios, categorías, variantes/SKU, imágenes privadas, movimientos de stock, empleados, clientes, ventas, pedidos con reserva de stock, dashboard y reportes CSV.
 
-Ventas, pedidos, WhatsApp, Flutter, seguimiento y suscripciones pertenecen a fases posteriores. No hay despliegue público ni cobros.
+WhatsApp, Flutter, seguimiento y suscripciones pertenecen a fases posteriores. No hay despliegue público, cobros ni facturación.
 
 ## Ejecutar en Windows
 
@@ -34,6 +34,9 @@ setup:local genera contraseñas aleatorias en .env y conserva un archivo existen
 5. Editar producto, subir imagen y consultar reportes por fecha; exportar CSV.
 6. Invitar una persona en Mi equipo y comprobar los permisos de su rol.
 7. Cerrar sesión y volver a entrar; los datos deben permanecer.
+8. En Clientes, registrar un cliente con una dirección.
+9. En Pedidos, crear un borrador y confirmarlo; en Inventario, su disponible debe bajar. Completarlo o cancelarlo.
+10. En Ventas, registrar una venta directa; comprobar existencias, dashboard y reportes.
 
 Invitaciones y recuperación usan un **buzón local de desarrollo** en .data/mailbox. No envían correos reales. Para leer el mensaje que acabas de solicitar:
 
@@ -73,7 +76,8 @@ La suite crea comercios identificados como TEST. Capturas y límites de verifica
 | --- | --- |
 | [Estado del proyecto](PROJECT_STATUS.md) | Resultados y siguiente fase pendiente |
 | [Informe de Fase 1](docs/09-phase1.md) | Alcance, decisiones y evidencia |
-| [OpenAPI](docs/openapi.phase1.json) | 32 operaciones: solicitudes y seguridad |
+| [Informe de Fase 2](docs/10-phase2.md) | Ventas y pedidos, decisiones pendientes y evidencia |
+| [OpenAPI](docs/openapi.json) | 48 operaciones: solicitudes y seguridad |
 | [API](apps/api/src/app.ts) | Express, sesiones, permisos y rutas |
 | [Datos](apps/api/prisma/schema.prisma) | Modelo y migración MySQL |
 | [Web](apps/web/src/main.tsx) | React, Router, Query y pantallas |

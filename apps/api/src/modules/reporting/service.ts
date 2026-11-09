@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+import type { OrderStatus, SalesDayDto, SalesReportDto, TopProductDto } from '@nexora/shared';
 import type { TenantContext } from '../../core/context.js';
 import { db } from '../../infrastructure/database.js';
 import { movementInclude } from '../inventory/service.js';
@@ -57,7 +59,9 @@ export async function dashboard(context: TenantContext, from: Date, to: Date) {
       { date: string; incoming: PrismaDecimal; outgoing: PrismaDecimal }[]
     >`SELECT DATE_FORMAT(CONVERT_TZ(createdAt,'+00:00','-05:00'),'%Y-%m-%d') AS date, SUM(CASE WHEN quantity>0 THEN quantity ELSE 0 END) AS incoming, SUM(CASE WHEN quantity<0 THEN -quantity ELSE 0 END) AS outgoing FROM StockMovement WHERE tenantId=${tenant} AND createdAt>=${from} AND createdAt<${to} GROUP BY date ORDER BY date`,
   ]);
+  const sales = await salesSnapshot(context, from, to);
   return {
+    sales,
     products,
     variants,
     units: sums._sum.onHand ?? 0,
@@ -69,6 +73,158 @@ export async function dashboard(context: TenantContext, from: Date, to: Date) {
   };
 }
 type PrismaDecimal = { toString(): string };
+const moneyOf = (value: PrismaDecimal | null | undefined) =>
+  new Prisma.Decimal(value?.toString() ?? '0').toFixed(2);
+const colombiaDate = (date = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+const completedIn = (tenantId: string, from: Date, to: Date) =>
+  ({
+    tenantId,
+    status: 'COMPLETED',
+    completedAt: { gte: from, lt: to },
+  }) satisfies Prisma.SalesOrderWhereInput;
+async function salesByDay(tenant: string, from: Date, to: Date): Promise<SalesDayDto[]> {
+  const rows = await db.$queryRaw<
+    { date: string; total: PrismaDecimal; count: bigint }[]
+  >`SELECT DATE_FORMAT(CONVERT_TZ(completedAt,'+00:00','-05:00'),'%Y-%m-%d') AS date, SUM(total) AS total, COUNT(*) AS count FROM SalesOrder WHERE tenantId=${tenant} AND status='COMPLETED' AND completedAt>=${from} AND completedAt<${to} GROUP BY date ORDER BY date`;
+  return rows.map((r) => ({ date: r.date, total: moneyOf(r.total), count: Number(r.count) }));
+}
+async function topProducts(
+  tenant: string,
+  from: Date,
+  to: Date,
+  limit: number,
+): Promise<TopProductDto[]> {
+  const rows = await db.$queryRaw<
+    {
+      sku: string;
+      productName: string;
+      variantName: string;
+      units: PrismaDecimal;
+      revenue: PrismaDecimal;
+    }[]
+  >`SELECT l.sku, l.productName, l.variantName, SUM(l.quantity) AS units, SUM(l.lineTotal) AS revenue FROM OrderLine l JOIN SalesOrder o ON o.id=l.orderId AND o.tenantId=l.tenantId WHERE l.tenantId=${tenant} AND o.status='COMPLETED' AND o.completedAt>=${from} AND o.completedAt<${to} GROUP BY l.sku, l.productName, l.variantName ORDER BY units DESC, revenue DESC, l.sku ASC LIMIT ${limit}`;
+  return rows.map((r) => ({
+    sku: r.sku,
+    productName: r.productName,
+    variantName: r.variantName,
+    units: Number(r.units),
+    revenue: moneyOf(r.revenue),
+  }));
+}
+async function salesSnapshot(context: TenantContext, from: Date, to: Date) {
+  const tenant = context.tenantId,
+    day = colombiaDate(),
+    todayRange = dateRange(day, day),
+    monthRange = dateRange(`${day.slice(0, 7)}-01`, day);
+  const [today, month, pendingOrders, daily, top] = await Promise.all([
+    db.salesOrder.aggregate({
+      where: completedIn(tenant, todayRange.start, todayRange.end),
+      _count: true,
+      _sum: { total: true },
+    }),
+    db.salesOrder.aggregate({
+      where: completedIn(tenant, monthRange.start, monthRange.end),
+      _sum: { total: true },
+    }),
+    db.salesOrder.count({ where: { tenantId: tenant, status: 'CONFIRMED' } }),
+    salesByDay(tenant, from, to),
+    topProducts(tenant, from, to, 5),
+  ]);
+  return {
+    todayTotal: moneyOf(today._sum.total),
+    todayCount: today._count,
+    monthTotal: moneyOf(month._sum.total),
+    pendingOrders,
+    daily,
+    topProducts: top,
+  };
+}
+export async function salesReport(
+  context: TenantContext,
+  from: Date,
+  to: Date,
+): Promise<SalesReportDto> {
+  const tenant = context.tenantId;
+  const [summary, units, daily, top, byStatus] = await Promise.all([
+    db.salesOrder.aggregate({
+      where: completedIn(tenant, from, to),
+      _count: true,
+      _sum: { total: true, discountTotal: true, deliveryFee: true },
+    }),
+    db.orderLine.aggregate({
+      where: { tenantId: tenant, order: completedIn(tenant, from, to) },
+      _sum: { quantity: true },
+    }),
+    salesByDay(tenant, from, to),
+    topProducts(tenant, from, to, 10),
+    db.salesOrder.groupBy({
+      by: ['status'],
+      where: { tenantId: tenant, createdAt: { gte: from, lt: to } },
+      _count: true,
+    }),
+  ]);
+  const revenue = new Prisma.Decimal(summary._sum.total?.toString() ?? '0');
+  return {
+    count: summary._count,
+    revenue: revenue.toFixed(2),
+    discounts: moneyOf(summary._sum.discountTotal),
+    deliveryFees: moneyOf(summary._sum.deliveryFee),
+    units: units._sum.quantity ?? 0,
+    averageTicket: summary._count
+      ? revenue
+          .dividedBy(summary._count)
+          .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
+          .toFixed(2)
+      : '0.00',
+    daily,
+    topProducts: top,
+    byStatus: byStatus.map((row) => ({ status: row.status as OrderStatus, count: row._count })),
+  };
+}
+export async function exportSales(context: TenantContext, from: Date, to: Date) {
+  const rows = await db.salesOrder.findMany({
+    where: completedIn(context.tenantId, from, to),
+    include: { createdBy: { select: { user: { select: { name: true } } } } },
+    take: 10001,
+    orderBy: { completedAt: 'desc' },
+  });
+  assert(rows.length <= 10000, 422, 'EXPORT_LIMIT', 'Reduce el periodo: máximo 10.000 ventas.');
+  return (
+    '﻿' +
+    [
+      [
+        'Número',
+        'Fecha UTC',
+        'Canal',
+        'Cliente',
+        'Subtotal COP',
+        'Descuentos COP',
+        'Domicilio COP',
+        'Total COP',
+        'Responsable',
+      ],
+      ...rows.map((r) => [
+        r.number,
+        r.completedAt?.toISOString() ?? '',
+        r.channel,
+        r.customerName,
+        r.subtotal.toFixed(2),
+        r.discountTotal.toFixed(2),
+        r.deliveryFee.toFixed(2),
+        r.total.toFixed(2),
+        r.createdBy.user.name,
+      ]),
+    ]
+      .map((r) => r.map(csvCell).join(','))
+      .join('\r\n')
+  );
+}
 export async function exportInventory(context: TenantContext) {
   const rows = await db.productVariant.findMany({
     where: { tenantId: context.tenantId, product: { active: true } },

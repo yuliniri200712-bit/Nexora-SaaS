@@ -4,7 +4,9 @@
 
 ## Estado y autorización
 
-**Fase 1 completada y verificada para ejecución local. Fase 2 no iniciada ni autorizada.**
+**Fases 1 y 2 completadas y verificadas para ejecución local. Fase 3 no iniciada ni autorizada.**
+
+La Fase 2 (clientes, ventas, pedidos, reservas y reportes de ventas) está en [su informe](docs/10-phase2.md), que incluye las decisiones de negocio pendientes de confirmar.
 
 El usuario autorizó Fase 1 después de revisar la planificación. Se implementó la aplicación local con persistencia real MySQL. Git tiene en la rama master el commit local de la Fase 1 (79515d6) y el de identidad y ajustes previos a Fase 2 (fa07a9b), sin remoto. No se publicó ni desplegó el producto.
 
@@ -18,23 +20,24 @@ El usuario autorizó Fase 1 después de revisar la planificación. Se implement�
 - Empleados mediante invitaciones; roles y desactivación con revocación de sesiones.
 - Dashboard, alertas, gráficos, historial, reportes por periodo y CSV reales.
 - Interfaz responsive con identidad original; configuración del comercio.
-- Migración SQL, configuración local aleatoria, scripts, workflow CI y OpenAPI de 32 operaciones.
+- Migraciones SQL, configuración local aleatoria, scripts, workflow CI y OpenAPI de 48 operaciones.
+- Clientes y direcciones; ventas directas; pedidos con borrador, confirmación, completado y cancelación; reserva y consumo de stock; descuentos, domicilio y totales; historial, filtros, reportes de ventas y CSV.
 
 ## Evidencia
 
 | Comprobación | Resultado |
 | --- | --- |
-| Migraciones en MySQL local | Dos aplicadas a nexora y nexora_test; sin migraciones pendientes |
+| Migraciones en MySQL local | Tres aplicadas a nexora y nexora_test; sin migraciones pendientes |
 | TypeScript | Aprobado |
 | ESLint | Aprobado |
 | Prettier | Aprobado |
 | Build shared/API/web | Aprobado |
-| Unitarias | 6 aprobadas |
-| Integración contra MySQL real | 21 aprobadas con Prisma 7.10.1 |
-| E2E Chrome | Recorrido completo aprobado: registro, categoría, producto, stock, recarga, historial, dashboard, logout/login |
+| Unitarias | 14 aprobadas |
+| Integración contra MySQL real | 43 aprobadas con Prisma 7.10.1 |
+| E2E Chrome | 2 recorridos aprobados: inventario de Fase 1, y cliente, pedido con reserva, venta directa, reportes y móvil |
 | Responsive | Revisado en escritorio y móvil; comprobación de ancho en 320, 390, 768, 1024 y 1440 px |
 | npm audit | 0 vulnerabilidades reportadas |
-| Base de desarrollo | Conteo del 2026-11-09: 1 usuario, 1 comercio, 0 productos y 0 movimientos, sin cambios tras las pruebas; fixtures únicamente en nexora_test |
+| Base de desarrollo | Datos propios del usuario; las pruebas no escribieron en ella; fixtures únicamente en nexora_test |
 | Secretos y datos locales | .env, .data, node_modules y dist excluidos por Git; contenido del commit revisado sin valores de .env |
 | Git | Commits locales 79515d6 (Fase 1, 88 archivos) y fa07a9b (identidad y ajustes, 21 archivos) en master; sin remoto |
 
@@ -54,14 +57,15 @@ Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png
 - Una ubicación por comercio, cantidades enteras, una imagen por producto y roles predefinidos. Variantes existentes se conservan por trazabilidad.
 - Almacenamiento privado local; limpieza de imágenes sustituidas y almacenamiento cloud pendientes antes de producción.
 - El logo SVG es una reconstrucción sobre la lámina, autorizada por el usuario, no el archivo original de diseño. Favicon e iconos de aplicación son recortes PNG de la lámina y no sirven por encima de 250 px. Solo hay versión del logo para fondos oscuros.
-- No hay ventas, pedidos, WhatsApp, Flutter, seguimiento, suscripciones, pagos o facturación fiscal.
+- No hay WhatsApp, Flutter, seguimiento, suscripciones, pagos, impuestos ni facturación fiscal.
+- Pendiente de decisión comercial: impuestos, pagos y contraentrega, devoluciones, autorización de descuentos, vencimiento de reservas y redondeo de cobro. Detalle en el informe de Fase 2.
 - MySQL necesita log_bin_trust_function_creators=1 para que el usuario de la aplicación cree triggers con el registro binario activo; compose.yaml lo configura en local. En producción habrá que activarlo o migrar con una cuenta con más privilegios.
 - Sin hosting público, monitoreo productivo, backup/restore ensayado ni certificación de producción.
 - No se ejecutaron operaciones sobre datos reales de producción ni acciones con coste.
 
 ## Archivos y ejecución
 
-Empezar por [README](README.md). Informe detallado: [Fase 1](docs/09-phase1.md). Contrato: [OpenAPI](docs/openapi.phase1.json). Código principal: [API](apps/api/src/app.ts), [modelo](apps/api/prisma/schema.prisma), [web](apps/web/src/main.tsx) y [contratos](packages/shared/src/index.ts).
+Empezar por [README](README.md). Informe detallado: [Fase 1](docs/09-phase1.md). Fase 2: [informe](docs/10-phase2.md). Contrato: [OpenAPI](docs/openapi.json). Código principal: [API](apps/api/src/app.ts), [modelo](apps/api/prisma/schema.prisma), [web](apps/web/src/main.tsx) y [contratos](packages/shared/src/index.ts).
 
 Con Docker Desktop iniciado, en la carpeta del proyecto:
 
@@ -72,6 +76,6 @@ Abrir http://127.0.0.1:5173 y crear la cuenta propia. No hay cuenta demo. Los pa
 
 ## Próximo paso
 
-Esperar autorización explícita para Fase 2: clientes, ventas, pedidos y reservas/consumo de stock vinculados a esas operaciones. No continuar automáticamente.
+Esperar autorización explícita para Fase 3: integración con WhatsApp Business Cloud API. Requiere app de Meta, cuenta y número habilitados, y HTTPS público. No continuar automáticamente.
 
 La planificación de Fase 0 y su evidencia se conservan en docs; el informe de Fase 1 identifica las decisiones implementadas y sustituye su estado inicial.
