@@ -63,7 +63,9 @@ erDiagram
 
 Producto sin opciones tiene una variante predeterminada: todo stock corresponde a un SKU. Cantidades fraccionarias, seriales de joyería y múltiples almacenes en interfaz quedan pendientes de validación; el alcance inicial usa unidades enteras y una ubicación.
 
-## Ventas, WhatsApp y entregas
+## Ventas, tienda en línea y entregas
+
+La integración con WhatsApp se eliminó del roadmap el 2026-11-10; las entidades de tienda y pagos de pedidos son propuestas para la Fase 3.
 
 ```mermaid
 erDiagram
@@ -80,10 +82,9 @@ erDiagram
   MEMBERSHIP ||--o{ DELIVERY_ASSIGNMENT : recibe
   DELIVERY ||--o{ DELIVERY_EVENT : transiciona
   DELIVERY ||--o{ DELIVERY_INCIDENT : reporta
-  WHATSAPP_CONNECTION ||--o{ CONVERSATION : recibe
-  CUSTOMER ||--o{ CONVERSATION : participa
-  CONVERSATION ||--o{ MESSAGE : contiene
-  MESSAGE o|--o{ SALES_ORDER : origina
+  TENANT ||--o| STOREFRONT : publica
+  STOREFRONT ||--o{ SALES_ORDER : recibe
+  ORDER_PAYMENT ||--o{ PAYMENT_EVENT : verifica
 ```
 
 | Entidad | Campos y restricciones relevantes |
@@ -92,17 +93,17 @@ erDiagram
 | SalesOrder | number único por tenant, customer_id opcional en mostrador, channel, status, payment_status, totals, currency, address_snapshot, version |
 | OrderLine | order_id, variant_id, quantity, snapshots monetarios y de producto; no alterar tras confirmación |
 | OrderEvent | estado previo/nuevo, actor, fecha, motivo; append-only |
-| OrderPayment | Cobro del comercio: método, importe, moneda, estado y evidencia/referencia; separado de facturación del SaaS |
+| OrderPayment | Cobro del comercio: método (contraentrega o en línea), importe, moneda, estado, proveedor y provider_payment_id único; separado de facturación del SaaS |
+| PaymentEvent | Evento verificado del proveedor: firma comprobada, dedup_key única, estado recibido y fecha; append-only |
+| Storefront | tenant_id único, slug público único, publicada sí/no, número de WhatsApp de contacto opcional para el enlace wa.me |
 | Delivery | order_id único por tenant, estado, importe por cobrar derivado de pagos, version |
 | DeliveryAssignment | delivery_id, courier_membership_id, assigned_at, accepted_at, ended_at; historial y un único asignado activo controlado transaccionalmente |
 | DeliveryEvent / DeliveryIncident | actor, transición/motivo, fecha, evidencia privada y ubicación solo con consentimiento |
-| WhatsAppConnection | tenant_id, phone_number_id global único, WABA ID, token cifrado o secret_ref, status |
-| Conversation / Message | connection_id, customer_id; provider_message_id único por conexión, dirección, tipo, estado; contenido con retención definida |
 | WebhookInbox | provider, external_connection_id, dedup_key única, tenant resuelto, payload protegido, processing_state, attempts |
 | OutboxEvent | tenant_id, event_type, resource_id, payload mínimo, state, attempts, next_attempt_at, lease_until |
 | IdempotencyRecord | tenant_id, actor, operation, key, request_hash, response_ref, expires_at; combinación única |
 
-No se usa el teléfono como clave global de cliente: una persona puede comprar en dos comercios sin compartir historial. La deduplicación distingue mensajes entrantes de eventos de estado; varios estados pueden usar el mismo provider_message_id.
+No se usa el teléfono como clave global de cliente: una persona puede comprar en dos comercios sin compartir historial. Un pedido en línea guarda un hash del token de seguimiento, nunca el token. Un mismo pago puede recibir varios eventos del proveedor, incluso fuera de orden; el estado final se deriva de eventos verificados y deduplicados.
 
 ## Planes y facturación del SaaS
 
@@ -134,7 +135,7 @@ Invariantes por saldo: `on_hand >= 0`, `reserved >= 0`, `reserved <= on_hand`; d
 4. Cancelación antes de salida: liberar reserved. Después de salida: registrar incidencia/devolución; reponer on_hand solo al recibir físicamente mercancía y autorizar el movimiento.
 5. Ajuste: delta con motivo y permiso, sin bajar on_hand por debajo de reserved. Correcciones mediante nuevos movimientos, no editando el historial.
 
-Estrategia propuesta: transacción corta con bloqueo de filas o actualización condicional atómica con predicado de disponibilidad, versión y tenant. Fijar el mecanismo concreto con la versión Prisma elegida; si requiere SQL, usar parámetros y encapsularlo en el repositorio de inventario. Bloquear también el pedido/reserva antes de transición. Deadlocks y conflictos requieren rollback completo y reintento acotado con jitter, respetando idempotencia. Nunca llamar a Meta, correo o pasarela dentro de la transacción DB.
+Estrategia propuesta: transacción corta con bloqueo de filas o actualización condicional atómica con predicado de disponibilidad, versión y tenant. Fijar el mecanismo concreto con la versión Prisma elegida; si requiere SQL, usar parámetros y encapsularlo en el repositorio de inventario. Bloquear también el pedido/reserva antes de transición. Deadlocks y conflictos requieren rollback completo y reintento acotado con jitter, respetando idempotencia. Nunca llamar a correo o pasarela dentro de la transacción DB.
 
 Prueba obligatoria: dos solicitudes simultáneas por la última unidad producen un solo éxito y un conflicto; el saldo no termina negativo y existe un solo consumo. Probar también cancelación contra recogida y repetición de la misma clave tras un timeout.
 

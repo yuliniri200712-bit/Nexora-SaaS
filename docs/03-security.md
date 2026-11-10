@@ -1,6 +1,6 @@
 # Multi-tenancy y seguridad
 
-Especificación del ecosistema elaborada en Fase 0. Los controles implementados y probados en Fase 1 se detallan en [el informe de implementación](09-phase1.md). Los controles de WhatsApp, pagos, móvil y producción siguen pendientes de sus fases.
+Especificación del ecosistema elaborada en Fase 0. Los controles implementados y probados en Fase 1 se detallan en [el informe de implementación](09-phase1.md). Los controles de tienda en línea, pagos, móvil y producción siguen pendientes de sus fases.
 
 ## Aislamiento por comercio
 
@@ -52,15 +52,15 @@ Administrador de plataforma es una identidad de NEXORA separada. Acceso de sopor
 - Subidas: validar tipo por contenido, tamaño, extensión y dimensiones; generar nombre, almacenar privado y servir con tipo seguro. No descargar URLs arbitrarias para evitar SSRF.
 - CSV: neutralizar fórmulas de celdas que comiencen con caracteres peligrosos; permisos y tenant también se aplican a exportación.
 - HTTP: HTTPS, CORS de orígenes explícitos cuando sea necesario, CSP, cabeceras seguras, límites de body, rate limiting y errores sin stack del servidor.
-- Secretos: fuera del repositorio y frontend; Secret Manager/KMS o equivalente para producción, cuentas con mínimo privilegio. Tokens Meta cifrados con claves separadas de la base o referencias al gestor de secretos. Variables públicas VITE solo contienen datos públicos.
+- Secretos: fuera del repositorio y frontend; Secret Manager/KMS o equivalente para producción, cuentas con mínimo privilegio. Credenciales de pasarela cifradas con claves separadas de la base o referencias al gestor de secretos. Variables públicas VITE solo contienen datos públicos.
 - Logs: requestId, acción, tenant/actor internos y resultado; excluir cookies, Authorization, contraseñas, tokens, mensajes completos, direcciones y coordenadas. Auditoría append-only con permisos DB restringidos y retención definida.
 - Reportes y notificaciones: no incluir datos privados en enlaces públicos, notificaciones de pantalla bloqueada o mensajes a destinatarios sin verificar.
 
-## Meta y pagos: diseño, no conexión verificada
+## Tienda en línea y pagos: diseño, no implementado
 
-Meta: handshake GET con verify token; POST con firma X-Hub-Signature-256 comprobada sobre bytes originales mediante secreto de app y comparación de tiempo constante. Limitar body y verificar antes de persistir/procesar. Resolver conexión por phone_number_id registrado; rechazar o poner en cuarentena fuentes desconocidas. Confirmar recepción solo después de persistencia duradera; procesar con deduplicación y reintentos. El verify token de configuración no reemplaza la firma de eventos.
+La integración con WhatsApp se eliminó del roadmap el 2026-11-10. No adoptar automatizaciones de WhatsApp Web; el enlace wa.me de la tienda solo abre un chat con el comercio y no envía datos a NEXORA.
 
-Antes de Fase 3 se debe revalidar el protocolo, versión de Graph API, permisos, onboarding, plantillas, consentimiento y ventanas de mensajería en documentación oficial vigente. El acceso a la [guía oficial de webhooks de Meta](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/) devolvió HTTP 429 durante esta revisión; por tanto esta fase no certifica esa integración. No adoptar SDKs archivados ni automatizaciones de WhatsApp Web.
+Tienda: rutas públicas sin sesión y separadas de la API privada. El comercio se resuelve por su dirección pública y solo se exponen productos activos de una tienda publicada; nunca identificadores internos de otros comercios, costos ni datos de clientes. Crear pedido exige validación estricta, límites por visitante y por comercio, tamaño de body acotado e Idempotency-Key, y crea solo borradores sin reserva. Precios y totales siempre se recalculan en el servidor. El seguimiento usa un token aleatorio largo, guardado como hash y comparado en tiempo constante, y muestra datos mínimos. Datos personales solo con autorización expresa del cliente, conforme a la ley colombiana de protección de datos. Antes de implementar, revalidar contra la documentación vigente del proveedor de pagos elegido.
 
 Pagos: persistir intento con importe/moneda/tenant esperados; verificar webhook del proveedor, referencia, importe y moneda, y consultar proveedor si es necesario. Deduplicar y procesar estados fuera de orden, reembolsos y contracargos. La redirección del navegador nunca confirma un pago. Un cobro manual del comercio queda identificado como registro manual; no se presenta como confirmación bancaria.
 

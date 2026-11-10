@@ -1,6 +1,6 @@
 # Roadmap y aceptación
 
-Fases 1 y 2 autorizadas e implementadas para validación local. Fase 3 no autorizada. Cada fase termina con estado actualizado, evidencia y limitaciones. No se estiman fechas sin conocer capacidad, alcance comercial y dependencias.
+Fases 1 y 2 autorizadas e implementadas para validación local. Fase 3 redefinida como tienda en línea el 2026-11-10; su implementación aún no está autorizada. Cada fase termina con estado actualizado, evidencia y limitaciones. No se estiman fechas sin conocer capacidad, alcance comercial y dependencias.
 
 ## Fase 0 — Inspección y planificación
 
@@ -37,13 +37,26 @@ Tareas: clientes/direcciones; precios snapshot; líneas, descuentos, domicilio y
 
 Aceptación: cálculos decimales y redondeos con casos límite; última unidad concurrente con un solo éxito; idempotencia tras timeout; cancelación libera una vez; salidas no duplicadas; aislamiento en reportes/exportaciones; devolución no repone sin confirmación física. Todos los cambios dejan actor y fecha.
 
-## Fase 3 — WhatsApp oficial
+## Fase 3 — Tienda en línea
 
-Tareas: onboarding y conexión por comercio, secretos, webhook autenticado, inbox/outbox, deduplicación, conversaciones, catálogo/stock reales, confirmación explícita de pedido y notificaciones. Diseñar flujo determinista inicial; un modelo generativo no es requisito y no decide precios/stock.
+Decisión del usuario, 2026-11-10: la tienda en línea reemplaza la integración con WhatsApp y el bot de WhatsApp se elimina del roadmap. Meta exigió verificar el negocio y restringió la cuenta de prueba (error 131031) antes de permitir mensajes. No se usarán automatizaciones no oficiales de WhatsApp Web.
 
-Dependencias: app Meta, cuenta y número habilitados, permisos, HTTPS público y pruebas oficiales. Sin ellos solo se puede validar adaptador con mocks identificados.
+Tareas:
 
-Aceptación: mensaje en entorno oficial genera conversación; consulta coincide con DB; pedido confirmado aparece en panel; firma falsa rechazada; reintento no duplica pedido; envío permitido por política vigente. Pruebas con mocks no bastan para declarar integración operativa.
+- Página pública por comercio con dirección propia, activable y desactivable desde Configuración. Catálogo con productos activos, fotos, precios y cantidad disponible exacta (existencias menos reservas).
+- Carrito con mostrador o domicilio, dirección, datos de contacto y autorización expresa del tratamiento de datos personales.
+- Resumen y confirmación explícita del cliente. El pedido entra como borrador del canal «En línea», sin reservar existencias, con número de seguimiento.
+- El comercio lo revisa y confirma desde el panel; la confirmación reserva existencias con las reglas de Fase 2. Si ya no alcanzan, se rechaza sin sobreventa y el pedido puede ajustarse o cancelarse.
+- Página de seguimiento con enlace no adivinable: recibido, confirmado, pagado, completado o cancelado.
+- Métodos de pago: contraentrega y pago en línea. El pago en línea se habilita cuando el comercio confirma el pedido, mediante una pasarela colombiana en modo de prueba; solo el webhook verificado del proveedor marca un pago, nunca la redirección del navegador. La contraentrega se registra como cobro manual al completar el pedido.
+- Enlace «Escribir por WhatsApp» con el número del pedido hacia el número que configure el comercio. Es un enlace wa.me para atención humana, no una integración.
+- Protección contra abuso: límites por visitante y comercio, validación estricta, envío idempotente y sin reservas hasta la confirmación del comercio.
+
+Dependencias: pasarela de pagos colombiana con credenciales de prueba; HTTPS público para webhooks de pago y para que los clientes accedan. Mientras no haya hosting, la validación es local, con túnel para los webhooks de prueba. Cobros reales requieren autorización separada.
+
+Decisiones pendientes: pasarela y si cada comercio usa su propia cuenta; plazo para pagar un pedido confirmado con pago en línea antes de cancelarlo y liberar existencias; costo de domicilio en la tienda; impuestos y precio final; devoluciones y reembolsos de pagos en línea.
+
+Aceptación: el catálogo público muestra solo productos activos y existencias reales del comercio, nunca de otro; el pedido del cliente aparece en el panel como borrador sin reservar; un reenvío no lo duplica; confirmar sin existencias no sobrevende; un pago de prueba confirmado por webhook marca el pedido pagado una sola vez; firma falsa, importe distinto o evento repetido no cambian el estado; la redirección sin webhook no marca pago; la contraentrega queda como cobro manual; el seguimiento no expone otros pedidos; E2E del recorrido completo, también en móvil.
 
 ## Fase 4 — Flutter para repartidores
 
@@ -59,9 +72,9 @@ Aceptación: tenant y asignación protegen canales; reconexión converge al esta
 
 ## Fase 6 — Suscripciones y administración NEXORA
 
-Tareas: planes/versiones/límites editables, trial configurable, vencimientos, cambios y pagos históricos; administración de plataforma separada y auditada; adaptador de pasarela. Crear landing comercial coherente con capacidades ya verificadas, FAQ y CTA operativos.
+Tareas: planes/versiones/límites editables, trial configurable, vencimientos, cambios y pagos históricos del comercio a NEXORA; administración de plataforma separada y auditada; pasarela para suscripciones, reutilizando el adaptador de Fase 3 cuando aplique y sin mezclar esos cobros con los pagos de pedidos. Crear landing comercial coherente con capacidades ya verificadas, FAQ y CTA operativos.
 
-Aceptación: límites aplicados atómicamente en backend, incluidas API/WhatsApp; prueba/vencimiento/cambio de plan verificados; pago confirmado por proveedor antes de activación; eventos repetidos o fuera de orden no causan cargos/activaciones duplicados. Si solo se prepara pasarela sin credenciales, cobros reales permanecen bloqueados y declarados pendientes. Precios/condiciones y capturas de landing revisados, sin testimonios ficticios.
+Aceptación: límites aplicados atómicamente en backend, incluidas API y tienda en línea; prueba/vencimiento/cambio de plan verificados; pago confirmado por proveedor antes de activación; eventos repetidos o fuera de orden no causan cargos/activaciones duplicados. Si solo se prepara pasarela sin credenciales, cobros reales permanecen bloqueados y declarados pendientes. Precios/condiciones y capturas de landing revisados, sin testimonios ficticios.
 
 ## Fase 7 — Auditoría y producción
 

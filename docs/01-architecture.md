@@ -4,7 +4,7 @@ Diseño del ecosistema elaborado en Fase 0. La implementación y decisiones efec
 
 ## Enfoque
 
-Monorepo con web React y API Node.js/TypeScript, más una aplicación Flutter que consume la misma API REST. Backend como monolito modular por dominios: facilita transacciones entre pedidos e inventario y evita operar varios servicios antes de que exista demanda real. Un proceso worker del mismo backend atenderá trabajos asíncronos cuando se incorpore WhatsApp.
+Monorepo con web React y API Node.js/TypeScript, más una aplicación Flutter que consume la misma API REST. Backend como monolito modular por dominios: facilita transacciones entre pedidos e inventario y evita operar varios servicios antes de que exista demanda real. Un proceso worker del mismo backend atenderá trabajos asíncronos cuando se necesiten, por ejemplo vencimientos y conciliación de pagos. La integración con WhatsApp se eliminó del roadmap el 2026-11-10; la Fase 3 es una tienda en línea.
 
 MySQL con InnoDB y Prisma es la preferencia del encargo. La combinación exacta de Node, Prisma, adaptador y MySQL debe fijarse y probarse al iniciar la Fase 1; no se asume que cualquier versión denominada latest preserve las mismas APIs o soporte. Ver [decisiones](07-decisions-risks.md).
 
@@ -13,6 +13,9 @@ MySQL con InnoDB y Prisma es la preferencia del encargo. La combinación exacta 
 ```mermaid
 flowchart LR
   Web[Web React: comercio y landing] --> API[API REST versionada]
+  Shop[Tienda en línea pública por comercio] --> Public[API pública de tienda]
+  Public --> Catalog
+  Public --> Orders
   Mobile[Flutter: repartidores] --> API
   API --> Access[Identidad, tenant y permisos]
   Access --> Catalog[Productos y categorías]
@@ -30,19 +33,16 @@ flowchart LR
   Delivery --> DB
   Billing --> DB
   Access --> DB
-  Meta[WhatsApp Cloud API oficial] --> Hook[Ingreso de webhooks verificados]
-  Hook --> Inbox[Inbox persistente]
+  Pay[Pasarela de pagos] --> PayHook[Webhook de pagos verificado]
+  PayHook --> Inbox[Inbox persistente]
   Inbox --> Worker[Worker: reintentos y deduplicación]
-  Worker --> Orders
-  Worker --> Catalog
-  Orders --> Outbox[Outbox transaccional]
-  Outbox --> Worker
-  Worker --> Meta
-  Pay[Proveedor de pagos futuro] --> PayHook[Webhook de pagos verificado]
-  PayHook --> Billing
+  Worker --> Payments[Pagos de pedidos]
+  Worker --> Billing
+  Payments --> Orders
+  Payments --> DB
 ```
 
-El diagrama describe el destino del producto; en Fase 1 solo se implementa el subconjunto autorizado. Identidad protege todas las rutas privadas. Los webhooks tienen autenticación de proveedor y resolución de tenant propia, nunca una sesión de navegador.
+El diagrama describe el destino del producto; solo existe lo implementado en las fases autorizadas. Identidad protege todas las rutas privadas. La API pública de tienda no usa sesión: resuelve el comercio por su dirección pública, solo lee catálogo publicado y solo crea pedidos en borrador. Los webhooks tienen autenticación de proveedor y resolución de tenant propia, nunca una sesión de navegador.
 
 | Dominio | Responsabilidad y frontera |
 | --- | --- |
@@ -52,7 +52,8 @@ El diagrama describe el destino del producto; en Fase 1 solo se implementa el su
 | customers | Clientes, teléfonos y direcciones dentro del comercio |
 | orders / sales | Totales, confirmación, descuentos, estados comerciales e historial; venta directa usa el mismo núcleo |
 | reporting | Consultas agregadas filtradas por tenant, fecha y permisos; no altera saldos |
-| whatsapp | Adaptador Meta, conversaciones, mensajes, inbox/outbox; usa servicios de catálogo y pedidos |
+| storefront | Tienda pública por comercio, carrito, pedido en borrador y seguimiento; usa servicios de catálogo y pedidos, sin acceso privado |
+| payments | Pagos de pedidos: contraentrega como cobro manual y pago en línea por pasarela con webhook verificado; separado de billing |
 | delivery | Repartidores, asignaciones, transiciones e incidencias; no duplica clientes ni inventario |
 | billing | Planes versionados, límites, suscripciones y pagos del SaaS |
 | platform-admin | Administración separada de NEXORA, permisos explícitos y auditoría; no es el administrador del comercio |
@@ -73,8 +74,8 @@ nexora/
       src/
         app/               # Configuración, HTTP y composición
         modules/<domain>/  # routes, schemas, controllers, services, repositories
-        infrastructure/    # Persistencia, correo, objetos, Meta y pagos
-        workers/           # Jobs del mismo backend, desde Fase 3
+        infrastructure/    # Persistencia, correo, objetos y pagos
+        workers/           # Jobs del mismo backend, cuando se necesiten
       prisma/              # Esquema y migraciones de la versión elegida
       tests/               # Integración real con MySQL y fixtures aislados
     mobile/lib/
@@ -124,6 +125,6 @@ No se agregaron dependencias en Fase 0. No se fija un proveedor cloud ni un brok
 
 ## Procesamiento asíncrono y despliegue
 
-Una transacción escribe el cambio de negocio y un evento outbox. El worker procesa con entrega al menos una vez, lease, reintentos limitados y deduplicación; no se promete entrega exactamente una vez a servicios externos. Un timeout ambiguo requiere conciliación, especialmente en pagos y mensajes, antes de repetir operaciones con efectos.
+Una transacción escribe el cambio de negocio y un evento outbox. El worker procesa con entrega al menos una vez, lease, reintentos limitados y deduplicación; no se promete entrega exactamente una vez a servicios externos. Un timeout ambiguo requiere conciliación, especialmente en pagos, antes de repetir operaciones con efectos.
 
 API y worker sin estado local persistente, MySQL administrado y almacenamiento de objetos privado permiten crecer sin rediseñar los dominios. Web y API preferiblemente bajo el mismo origen mediante proxy `/api`, para simplificar cookies y CORS. Separar entornos de desarrollo, staging y producción; no crear infraestructura durante Fase 0.

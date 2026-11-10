@@ -4,7 +4,7 @@
 
 Aplicación local para comercios, con las Fases 1 y 2 implementadas y persistencia MySQL. Incluye cuentas, sesiones, roles, aislamiento entre comercios, categorías, variantes/SKU, imágenes privadas, movimientos de stock, empleados, clientes, ventas, pedidos con reserva de stock, dashboard y reportes CSV.
 
-WhatsApp, Flutter, seguimiento y suscripciones pertenecen a fases posteriores. No hay despliegue público, cobros ni facturación.
+Tienda en línea con pagos, Flutter, seguimiento y suscripciones pertenecen a fases posteriores. No hay despliegue público, cobros ni facturación.
 
 ## Ejecutar en Windows
 

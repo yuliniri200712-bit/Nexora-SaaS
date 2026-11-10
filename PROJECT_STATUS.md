@@ -4,7 +4,7 @@
 
 ## Estado y autorización
 
-**Fases 1 y 2 completadas y verificadas para ejecución local. Fase 3 no iniciada ni autorizada.**
+**Fases 1 y 2 completadas y verificadas para ejecución local. Fase 3 redefinida como tienda en línea; no iniciada ni autorizada su implementación.**
 
 La Fase 2 (clientes, ventas, pedidos, reservas y reportes de ventas) está en [su informe](docs/10-phase2.md), que incluye las decisiones de negocio pendientes de confirmar.
 
@@ -61,7 +61,7 @@ Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png
 - Una ubicación por comercio, cantidades enteras, una imagen por producto y roles predefinidos. Variantes existentes se conservan por trazabilidad.
 - Almacenamiento privado local; limpieza de imágenes sustituidas y almacenamiento cloud pendientes antes de producción.
 - El logo SVG es una reconstrucción sobre la lámina, autorizada por el usuario, no el archivo original de diseño. Favicon e iconos de aplicación son recortes PNG de la lámina y no sirven por encima de 250 px. Solo hay versión del logo para fondos oscuros.
-- No hay WhatsApp, Flutter, seguimiento, suscripciones, pagos, impuestos ni facturación fiscal.
+- No hay tienda en línea, Flutter, seguimiento, suscripciones, pagos, impuestos ni facturación fiscal.
 - Pendiente de decisión comercial: impuestos, pagos y contraentrega, devoluciones, autorización de descuentos, vencimiento de reservas y redondeo de cobro. Detalle en el informe de Fase 2.
 - MySQL necesita log_bin_trust_function_creators=1 para que el usuario de la aplicación cree triggers con el registro binario activo; compose.yaml lo configura en local. En producción habrá que activarlo o migrar con una cuenta con más privilegios.
 - Copias de seguridad solo manuales y locales; sin copias automáticas ni fuera del equipo. Sin hosting público, monitoreo productivo ni certificación de producción.
@@ -80,6 +80,8 @@ Abrir http://127.0.0.1:5173 y crear la cuenta propia. No hay cuenta demo. Los pa
 
 ## Próximo paso
 
-Esperar autorización explícita para Fase 3: integración con WhatsApp Business Cloud API. Requiere app de Meta, cuenta y número habilitados, y HTTPS público. No continuar automáticamente.
+Esperar autorización explícita para la Fase 3: tienda en línea por comercio, con pedidos en borrador, cantidad disponible exacta, contraentrega y pago en línea por pasarela en modo de prueba. El alcance, las dependencias y las decisiones pendientes están en el [roadmap](docs/05-roadmap.md). No continuar automáticamente.
+
+Cambio de alcance, 2026-11-10: el usuario reemplazó la integración con WhatsApp por la tienda en línea y eliminó el bot de WhatsApp del roadmap. Al probar la API oficial, Meta exigió verificar el negocio y restringió la cuenta de prueba (error 131031). Solo se cambió documentación; no hay código de WhatsApp en el proyecto.
 
 La planificación de Fase 0 y su evidencia se conservan en docs; el informe de Fase 1 identifica las decisiones implementadas y sustituye su estado inicial.

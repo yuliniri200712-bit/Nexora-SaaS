@@ -75,7 +75,7 @@ Tablas: priorizar columnas, detalle expandible y desplazamiento horizontal etiqu
 
 La futura fuente de tokens residirá en packages/design-system con exportación CSS y Dart. Componentes React se comparten entre panel y landing; Flutter comparte valores, estados y reglas, no código de componentes web. Evitar duplicaciones manuales sin control de versión.
 
-Landing propuesta: hero/eslogan, problema, beneficios, módulos, capturas verificadas, WhatsApp, logística, planes, FAQ, CTA y footer. Hasta tener producto, cualquier imagen conceptual se etiqueta como tal. No inventar clientes, testimonios, métricas ni conexiones activas. Publicar precios solo después de aprobar condiciones comerciales.
+Landing propuesta: hero/eslogan, problema, beneficios, módulos, capturas verificadas, tienda en línea, logística, planes, FAQ, CTA y footer. Hasta tener producto, cualquier imagen conceptual se etiqueta como tal. No inventar clientes, testimonios, métricas ni conexiones activas. Publicar precios solo después de aprobar condiciones comerciales.
 
 ## Revisión visual futura
 
