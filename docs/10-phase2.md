@@ -48,7 +48,7 @@ Son valores por defecto seguros; ninguna está cerrada comercialmente.
 | --- | --- |
 | TypeScript, ESLint, Prettier | Aprobados |
 | Unitarias | 17 aprobadas |
-| Integración MySQL real | 43 aprobadas (21 anteriores y 22 de Fase 2), en ejecuciones repetidas |
+| Integración MySQL real | 44 aprobadas (21 anteriores y 23 de Fase 2); las 43 previas a la corrección de triggers, en ejecuciones repetidas |
 | E2E Chrome | 2 recorridos aprobados, con puertos alternativos |
 | Prueba manual | El usuario informó el 2026-11-09 que el flujo funciona en Chrome y en su servidor local |
 | Build API y web | Completado, con salida fuera del repositorio |
@@ -65,6 +65,8 @@ No se afirma: prueba de carga, auditoría de penetración, accesibilidad exhaust
 ## Operación
 
 La migración `202611100001_sales_orders` añade columnas y tablas sin modificar datos existentes. Requiere `log_bin_trust_function_creators=1` por sus triggers, como la anterior.
+
+La migración `202611100002_trigger_body_backup_fix` recrea con `BEGIN ... END` los triggers de modificación de movimientos y del historial de pedidos. Sin ella, MySQL los guardaba con un punto y coma final y las copias de mysqldump no se podían restaurar. No cambia datos ni comportamiento. Cualquier trigger nuevo debe usar `BEGIN ... END`.
 
 Para E2E, detener `npm run dev`: si sigue activo, las pruebas llegan a ese servidor y a la base de desarrollo en lugar de `nexora_test`. Durante esta fase varios intentos llegaron así a la base de desarrollo antes de aplicar la migración y fallaron sin escribir datos. La verificación final usó puertos alternativos y `nexora_test`.
 

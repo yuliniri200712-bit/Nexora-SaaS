@@ -27,6 +27,9 @@
     "test:e2e": "playwright test",
     "format:check": "prettier --check apps packages tests scripts",
     "db:prepare:test": "node scripts/prepare-test-db.mjs",
+    "test:db:up": "docker compose -f compose.test.yaml up -d --wait && node scripts/prepare-test-db.mjs",
+    "test:db:down": "docker compose -f compose.test.yaml down -v",
+    "test:integration:local": "node scripts/with-test-db.mjs",
     "dev:test:api": "node scripts/start-test-api.mjs",
     "predev": "npm run build -w @nexora/shared",
     "docs:api": "npm run build -w @nexora/shared && node scripts/generate-openapi.mjs"

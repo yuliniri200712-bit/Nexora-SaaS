@@ -6,14 +6,13 @@ services:
     command: ['--log-bin-trust-function-creators=1']
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run setup:local}
-      MYSQL_DATABASE: nexora
+      MYSQL_DATABASE: nexora_principal
       MYSQL_USER: nexora
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Run setup:local}
     ports:
       - '127.0.0.1:3307:3306'
     volumes:
       - nexora-mysql:/var/lib/mysql
-      - ./infrastructure/init-test-db.sql:/docker-entrypoint-initdb.d/01-test.sql:ro
     healthcheck:
       test:
         [

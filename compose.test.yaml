@@ -1,0 +1,26 @@
+# MySQL temporal solo para pruebas automáticas, separado del MySQL de compose.yaml.
+# Sus datos viven en memoria y desaparecen con npm run test:db:down. Nunca contiene datos reales,
+# por eso sus claves son fijas y solo escucha en este equipo.
+name: nexora-test
+services:
+  mysql:
+    image: mysql:8.4
+    command: ['--log-bin-trust-function-creators=1']
+    environment:
+      MYSQL_ROOT_PASSWORD: solo-pruebas-temporal-root
+      MYSQL_DATABASE: nexora_test
+      MYSQL_USER: nexora
+      MYSQL_PASSWORD: solo-pruebas-temporal
+    ports:
+      - '127.0.0.1:3308:3306'
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h 127.0.0.1 -u root --silent',
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 40

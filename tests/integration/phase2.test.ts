@@ -711,6 +711,19 @@ describe('Fase 2 contra MySQL real', () => {
     ).rejects.toThrow();
   });
 
+  it('los triggers se guardan de forma que una copia con mysqldump se puede restaurar', async () => {
+    const triggers = await db.$queryRaw<{ name: string; body: string }[]>`
+      SELECT TRIGGER_NAME AS name, ACTION_STATEMENT AS body FROM information_schema.TRIGGERS
+      WHERE TRIGGER_SCHEMA = DATABASE() ORDER BY TRIGGER_NAME`;
+    expect(triggers.map((t) => t.name)).toEqual([
+      'order_event_no_delete',
+      'order_event_no_update',
+      'stock_movement_no_delete',
+      'stock_movement_no_update',
+    ]);
+    for (const trigger of triggers) expect(trigger.body.trimEnd()).not.toMatch(/;$/);
+  });
+
   it('el saldo reservado coincide siempre con las reservas activas', async () => {
     const rows = await db.$queryRaw<{ variantId: string }[]>`
       SELECT b.variantId FROM InventoryBalance b

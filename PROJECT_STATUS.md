@@ -1,6 +1,6 @@
 # NEXORA — Estado del proyecto
 
-Última actualización: 2026-11-09, America/Bogota.
+Última actualización: 2026-11-10, America/Bogota.
 
 ## Estado y autorización
 
@@ -27,17 +27,17 @@ El usuario autorizó Fase 1 después de revisar la planificación. Se implement�
 
 | Comprobación | Resultado |
 | --- | --- |
-| Migraciones en MySQL local | Tres aplicadas a nexora y nexora_test; sin migraciones pendientes |
+| Migraciones en MySQL local | Cuatro aplicadas a nexora_principal, sin pendientes. Las pruebas las aplican en cada ejecución a su MySQL temporal |
 | TypeScript | Aprobado |
 | ESLint | Aprobado |
 | Prettier | Aprobado |
 | Build shared/API/web | Aprobado |
 | Unitarias | 17 aprobadas |
-| Integración contra MySQL real | 43 aprobadas con Prisma 7.10.1 |
+| Integración contra MySQL real | 44 aprobadas con Prisma 7.10.1 |
 | E2E Chrome | 2 recorridos aprobados: inventario de Fase 1, y cliente, pedido con reserva, venta directa, reportes y móvil |
 | Responsive | Revisado en escritorio y móvil; comprobación de ancho en 320, 390, 768, 1024 y 1440 px |
 | npm audit | 0 vulnerabilidades reportadas |
-| Base de desarrollo | Datos propios del usuario; las pruebas no escribieron en ella; fixtures únicamente en nexora_test |
+| Base de desarrollo | Desde el 2026-11-10, nexora_principal, creada vacía en el mismo contenedor, con datos propios del usuario; las pruebas no escriben en ella. Ese día, a petición del usuario y sin copia, se eliminaron la base anterior nexora y nexora_test, y se retiraron sus permisos. Es la única base del proyecto: compose.yaml y setup:local la crean en instalaciones nuevas, y las pruebas usan un MySQL temporal aparte que se elimina al terminar |
 | Secretos y datos locales | .env, .data, node_modules y dist excluidos por Git; contenido del commit revisado sin valores de .env |
 | Git | Historial en master publicado en GitHub (repositorio privado); revisado sin valores de .env, claves ni archivos locales |
 
@@ -48,6 +48,10 @@ Identidad visual, 2026-11-09, commit fa07a9b: favicon e iconos de aplicación a�
 Ajustes previos a Fase 2, 2026-11-09, commit fa07a9b: aceptar invitaciones usa el límite estricto de credenciales y valida el token antes de calcular Argon2; dos triggers impiden modificar o borrar movimientos de stock en MySQL; nueva prueba de solicitudes simultáneas con la misma clave de idempotencia, que pasó sin necesidad de corregir código. La migración se aplicó a nexora y nexora_test, y los conteos de nexora no cambiaron. Las 21 pruebas de integración aprobaron en cuatro ejecuciones seguidas. TypeScript, ESLint, Prettier, 6 unitarias, E2E, build de API y web con salida fuera del repositorio y npm audit también aprobados. El paso de CI añadido para permitir triggers no se ha ejecutado.
 
 Logo vectorial y colores, 2026-11-09: SVG del logo y del símbolo reconstruidos sobre la lámina (coincidencia por superposición: 99,4 % símbolo, 98,1 % palabra). Todos los colores de styles.css y del gráfico del dashboard están en tokens; quedan 0 literales. Con los mismos datos, 18 capturas antes y después mantienen su tamaño y cambian como máximo un 1,2 % de los píxeles. Los textos por debajo de WCAG AA en esas pantallas pasaron de 14 a 0, sin evaluar texto sobre degradados. TypeScript, ESLint, Prettier, 6 unitarias, 21 de integración, E2E, build web y npm audit aprobados, sin desbordamiento en las siete rutas del panel.
+
+Copias de seguridad, 2026-11-10: las copias con mysqldump no se podían restaurar, porque MySQL guardó dos triggers con un punto y coma final al ejecutarse la migración como un único script. La migración 202611100002_trigger_body_backup_fix los recrea con BEGIN ... END, sin cambiar su comportamiento, y una prueba de integración lo vigila. Se ensayó en un MySQL desechable desde cero y se aplicó a nexora_principal y nexora_test. Una copia de nexora_principal se restauró sin retoques en otro contenedor desechable, con las mismas tablas, triggers y conteos, y el trigger siguió rechazando cambios. TypeScript, ESLint, Prettier, 17 unitarias y 44 de integración aprobados; no se repitieron E2E ni build. El procedimiento está en [operación](docs/06-operations.md).
+
+Base única, 2026-11-10: a petición del usuario, nexora_principal es la única base del proyecto. compose.yaml la crea en instalaciones nuevas y ya no crea nexora_test, y setup:local apunta a ella. Las pruebas usan un MySQL temporal aparte (compose.test.yaml, puerto 3308, datos en memoria) que test:integration:local crea y elimina. En este equipo se eliminaron nexora y nexora_test, y se retiraron sus permisos. Con esta configuración pasaron TypeScript, ESLint, Prettier, 17 unitarias, 44 de integración y el build. Los 2 recorridos E2E en Chrome fallaron en la primera ejecución porque el dashboard tardó más de los 5 s de espera, con 1,6 GB de memoria libre en el equipo, y pasaron al repetirlos sin cambios. Tras las pruebas, nexora_principal conserva sus tablas, triggers y conteos, sin comercios TEST, y no queda ningún contenedor de pruebas. El workflow de GitHub no cambió: sigue usando su propio MySQL efímero con nexora_test.
 
 Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png y test-results/dashboard-mobile.png, revisadas visualmente. La verificación no equivale a una auditoría de producción, carga o accesibilidad exhaustiva. El workflow CI se activa al subir a GitHub; su resultado aún no se ha verificado.
 
@@ -60,7 +64,7 @@ Los tests usan datos TEST aislados. Capturas: test-results/dashboard-desktop.png
 - No hay WhatsApp, Flutter, seguimiento, suscripciones, pagos, impuestos ni facturación fiscal.
 - Pendiente de decisión comercial: impuestos, pagos y contraentrega, devoluciones, autorización de descuentos, vencimiento de reservas y redondeo de cobro. Detalle en el informe de Fase 2.
 - MySQL necesita log_bin_trust_function_creators=1 para que el usuario de la aplicación cree triggers con el registro binario activo; compose.yaml lo configura en local. En producción habrá que activarlo o migrar con una cuenta con más privilegios.
-- Sin hosting público, monitoreo productivo, backup/restore ensayado ni certificación de producción.
+- Copias de seguridad solo manuales y locales; sin copias automáticas ni fuera del equipo. Sin hosting público, monitoreo productivo ni certificación de producción.
 - No se ejecutaron operaciones sobre datos reales de producción ni acciones con coste.
 
 ## Archivos y ejecución

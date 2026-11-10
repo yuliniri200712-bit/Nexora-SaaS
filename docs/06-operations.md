@@ -6,9 +6,9 @@ La aplicación ya es ejecutable localmente. La [guía de inicio](../README.md) y
 
 - Web React/Vite: http://127.0.0.1:5173.
 - API Express: http://127.0.0.1:3001; el navegador consume /api por proxy Vite del mismo origen.
-- MySQL 8.4: 127.0.0.1:3307, contenedor nexora-local-mysql-1.
-- Desarrollo: base nexora; integración/E2E: nexora_test. El guard de pruebas rechaza cualquier otro nombre o un host remoto.
-- Datos persistentes: volumen Docker nexora-local_nexora-mysql. Los scripts de pruebas no lo eliminan ni resetean las bases.
+- MySQL 8.4: 127.0.0.1:3307, contenedor nexora-local-mysql-1, con una única base: nexora_principal.
+- Pruebas: MySQL temporal aparte, contenedor nexora-test-mysql-1 en 127.0.0.1:3308, con la base nexora_test en memoria. Se crea con test:db:up y desaparece con test:db:down. El guard de pruebas rechaza cualquier otro nombre o un host remoto, así que nunca escriben en nexora_principal.
+- Datos persistentes: volumen Docker nexora-local_nexora-mysql. Los scripts de pruebas no lo usan.
 - Archivos privados: .data/uploads; buzón de desarrollo: .data/mailbox. Los tests usan .data/test.
 - /health/live comprueba proceso; /health/ready verifica acceso a la DB. La API no expone secretos en esos endpoints.
 
@@ -26,9 +26,12 @@ La aplicación ya es ejecutable localmente. La [guía de inicio](../README.md) y
 | npm run lint | ESLint |
 | npm run format:check | Prettier, sin modificar archivos |
 | npm run test:unit | Reglas puras |
-| npm run db:prepare:test | Aplica migración solo a nexora_test en localhost |
-| npm run test:integration | Prueba MySQL real; requiere la DB anterior |
-| npm run dev:test:api | API de pruebas aislada, para E2E |
+| npm run test:db:up | Crea el MySQL temporal de pruebas y le aplica las migraciones |
+| npm run test:db:down | Elimina el MySQL temporal de pruebas y sus datos |
+| npm run test:integration:local | Crea el MySQL temporal, ejecuta la integración y lo elimina |
+| npm run db:prepare:test | Aplica migraciones solo a nexora_test en localhost |
+| npm run test:integration | Integración contra MySQL real; requiere el MySQL temporal activo |
+| npm run dev:test:api | API de pruebas aislada, para E2E; requiere el MySQL temporal activo |
 | npm run test:e2e | Chrome; requiere API de pruebas y Vite activos |
 | npm run build | Genera dist de shared, API y web |
 | npm run docs:api | Regenera solicitudes/seguridad OpenAPI |
@@ -43,7 +46,7 @@ No hay seed de demostración para desarrollo. Registro de cuenta desde la interf
 | PORT | Puerto de API, 3001 por defecto |
 | APP_ORIGIN | Origen permitido para CSRF; debe coincidir con la URL de navegador |
 | DATABASE_URL | Conexión privada MySQL; nunca frontend/logs |
-| TEST_DATABASE_URL | Base local nexora_test; guardada también en .env |
+| TEST_DATABASE_URL | nexora_test del MySQL temporal, en el puerto 3308; sus claves son fijas y desechables, definidas en compose.test.yaml |
 | DATABASE_CA_PATH | CA para verificar TLS; obligatoria si DB es remota o entorno producción |
 | MYSQL_PASSWORD / MYSQL_ROOT_PASSWORD | Inicialización del contenedor local |
 | SESSION_IDLE_MINUTES / SESSION_ABSOLUTE_HOURS | 30 minutos / 12 horas por defecto |
@@ -60,6 +63,20 @@ Producción exige HTTPS, SMTP y TLS de base verificado, pero esas comprobaciones
 - Token de invitación/recuperación: leer el último JSON en .data/mailbox; es un mensaje local, no un correo enviado.
 - Imagen privada: requiere sesión y permiso de catálogo. No servir .data mediante un directorio estático.
 - El reemplazo de imágenes puede dejar archivos antiguos; política de limpieza y almacenamiento administrado pendiente.
+
+## Copias de seguridad
+
+Base y fotos de productos se copian por separado: las imágenes están en .data/uploads, fuera de MySQL. Con Docker Desktop iniciado, en PowerShell desde la carpeta del proyecto, cambiando la fecha y la base si corresponde:
+
+    New-Item -ItemType Directory -Force "$HOME\Documents\Nexora-copias"
+    docker exec nexora-local-mysql-1 sh -c 'MYSQL_PWD=$MYSQL_PASSWORD mysqldump -unexora -h127.0.0.1 --single-transaction --routines --triggers --no-tablespaces --result-file=/tmp/copia.sql nexora_principal'
+    docker cp nexora-local-mysql-1:/tmp/copia.sql "$HOME\Documents\Nexora-copias\nexora-2026-11-10.sql"
+    docker exec nexora-local-mysql-1 rm -f /tmp/copia.sql
+    Copy-Item -Recurse .data\uploads "$HOME\Documents\Nexora-copias\fotos-2026-11-10"
+
+La copia se genera dentro del contenedor y se extrae con docker cp, porque redirigir la salida con > en Windows PowerShell puede cambiar la codificación del archivo. Nunca guardar copias dentro del repositorio: contienen datos de clientes y hashes de contraseñas, y Git no las excluye. Conservar también una copia fuera del equipo.
+
+Restaurar en una base vacía, nunca sobre la que está en uso, y solo con copias tomadas después de la migración 202611100002_trigger_body_backup_fix. Las anteriores contienen dos triggers con un punto y coma final que MySQL rechaza al restaurar.
 
 ## Migraciones y CI
 

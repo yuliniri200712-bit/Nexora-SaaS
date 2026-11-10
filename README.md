@@ -8,7 +8,7 @@ WhatsApp, Flutter, seguimiento y suscripciones pertenecen a fases posteriores. N
 
 ## Ejecutar en Windows
 
-Requisitos comprobados: Node.js 24.19.0, npm 11.17.0 y Docker Desktop con motor Linux. Se requiere Node 24.11 o superior dentro de la versión 24. MySQL usa el puerto local 3307; API 3001; web 5173.
+Requisitos comprobados: Node.js 24.19.0, npm 11.17.0 y Docker Desktop con motor Linux. Se requiere Node 24.11 o superior dentro de la versión 24. MySQL usa el puerto local 3307, con una única base, nexora_principal; API 3001; web 5173.
 
 Para una instalación nueva, desde PowerShell en esta carpeta:
 
@@ -53,13 +53,17 @@ Abrir el enlace contenido en el mensaje. Esa carpeta contiene enlaces sensibles 
     npm.cmd run lint
     npm.cmd run format:check
     npm.cmd run test:unit
-    npm.cmd run db:prepare:test
-    npm.cmd run test:integration
+    npm.cmd run test:integration:local
     npm.cmd run build
 
-La integración solo admite nexora_test en localhost. Para E2E, detener primero npm run dev y usar terminales separadas:
+Las pruebas nunca usan nexora_principal. test:integration:local arranca un MySQL temporal aparte (compose.test.yaml, puerto 3308, datos en memoria), aplica las migraciones a su base nexora_test, ejecuta la integración y lo elimina al terminar, aunque las pruebas fallen. Si se interrumpe con Ctrl+C, eliminarlo con npm.cmd run test:db:down.
 
-    # Terminal 1: API apuntando únicamente a nexora_test
+Para E2E, detener primero npm run dev y usar terminales separadas:
+
+    # Terminal 1: MySQL temporal de pruebas
+    npm.cmd run test:db:up
+
+    # Terminal 1, después: API apuntando únicamente al MySQL temporal
     npm.cmd run dev:test:api
 
     # Terminal 2: interfaz
@@ -68,7 +72,10 @@ La integración solo admite nexora_test en localhost. Para E2E, detener primero 
     # Terminal 3: requiere Google Chrome instalado
     npm.cmd run test:e2e
 
-La suite crea comercios identificados como TEST. Capturas y límites de verificación se describen en el [informe de Fase 1](docs/09-phase1.md). El workflow CI se activa al subir a GitHub; su resultado se consulta en la pestaña Actions del repositorio.
+    # Al terminar, detener las terminales 1 y 2 y eliminar el MySQL temporal
+    npm.cmd run test:db:down
+
+La suite crea comercios identificados como TEST, solo en el MySQL temporal. Capturas y límites de verificación se describen en el [informe de Fase 1](docs/09-phase1.md). El workflow CI se activa al subir a GitHub; su resultado se consulta en la pestaña Actions del repositorio.
 
 ## Documentación y código
 
